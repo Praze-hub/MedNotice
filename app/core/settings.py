@@ -28,6 +28,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'core.apps.CoreConfig',
+    
+    #installed apps
+    'rest_framework',
+    "drf_spectacular",
+    
+    #custom apps
     'common',
     'patients',
     'appointments',
@@ -90,6 +96,16 @@ LOGGING = {
         "handlers": ["console"],
         "level": "INFO",
     },
+}
+ 
+REST_FRAMEWORK = {
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "MedNotice API",
+    "DESCRIPTION": "Appointment and patient management API",
+    "VERSION": "1.0.0",
 }
 
 
