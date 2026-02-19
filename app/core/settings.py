@@ -1,4 +1,5 @@
 
+from datetime import timedelta
 from pathlib import Path
 import os
 import environ
@@ -33,10 +34,12 @@ INSTALLED_APPS = [
     'rest_framework',
     "drf_spectacular",
     
+    
     #custom apps
     'common',
     'patients',
     'appointments',
+    'accounts',
 ]
 
 MIDDLEWARE = [
@@ -98,14 +101,44 @@ LOGGING = {
     },
 }
  
+AUTH_USER_MODEL = "accounts.CustomUser"
+
+
 REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        'rest_framework.authentication.SessionAuthentication',
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
+    "DEFAULT_PERMISSION_CLASSES": (
+        "rest_framework.permissions.IsAuthenticated",
+    ),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+
+    
 }
+
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "MedNotice API",
     "DESCRIPTION": "Appointment and patient management API",
     "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    
+    "SECURITY": [
+        {
+            "bearerAuth": []
+        }
+    ],
+    
+    "COMPONENTS": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT",
+            }
+        }
+    },
 }
 
 
@@ -123,6 +156,17 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+}
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' 
+SITE_ID = 1 
 
 
 LANGUAGE_CODE = 'en-us'

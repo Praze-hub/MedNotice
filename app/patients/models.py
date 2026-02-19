@@ -1,7 +1,9 @@
 from django.db import models, transaction
 from common.models import BaseModel
+from core import settings
 
 class Patient(BaseModel):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="patient_profile", null=True, blank=True)
     patient_code = models.CharField(max_length=50, unique=True, editable=False)
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)

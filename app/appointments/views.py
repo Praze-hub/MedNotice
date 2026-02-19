@@ -3,13 +3,25 @@ from patients.models import Patient
 from .services.scheduling import schedule_appointment
 from .serializer import AppointmentCancelSerializer, AppointmentSerializer
 from .models import Appointment
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from .permissions import IsAdmin
 
 
 class AppointmentViewSet(viewsets.ModelViewSet):
     queryset = Appointment.objects.all()
+    permission_classes = [permissions.IsAuthenticated, IsAdmin]
+    
+    def get_queryset(self):
+        user = self.request.user
+        
+        if user.user_type == "admin":
+            return Appointment.objects.all()
+        
+        return Appointment.objects.filter(
+            patient__user=user
+        )
     
     @action(
         detail = True,
@@ -21,10 +33,23 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
-        patient = get_object_or_404(Patient, pk=pk)
+        # patient = get_object_or_404(Patient, pk=pk)
+        user = request.user
+        
+        if user.user_type != "patient":
+            return Response(
+                {"detail": "Only patients can book appointments"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+            
+        if not hasattr(user, "patient_profile"):
+            return Response(
+                {"detail": "Patient profile not created"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         
         appointment = schedule_appointment(
-            patient = patient,
+            patient = user.patient_profile,
             scheduled_time = serializer.validated_data["scheduled_time"],
         )
         
