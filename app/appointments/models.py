@@ -10,7 +10,8 @@ class Appointment(BaseModel):
     status = models.CharField(max_length=20,
                               choices=Status.choices(),
                               default=Status.SCHEDULED.value)
-    cancellation_reason = models.CharField(max_length=200, null=True)
+    description = models.CharField(max_length=500, null=True, blank=True)
+    cancellation_reason = models.CharField(max_length=200, null=True, blank=True)
     
     def cancel(self, reason: str):
         if self.status == "completed":

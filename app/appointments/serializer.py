@@ -3,18 +3,24 @@ from patients.models import Patient
 from rest_framework import serializers
 
 class AppointmentSerializer(serializers.ModelSerializer):
-    patient_code = serializers.CharField(write_only=True)
+    id = serializers.IntegerField(read_only=True)
+    status = serializers.CharField(read_only=True)
     
     class Meta:
         model = Appointment
-        fields = ["patient", "patient_code", "status", "scheduled_time"]
-        read_only = ["patient"]
+        fields = ["id", "status", "scheduled_time", "description"]
         
-    def create(self, validated_data):
-        patient_code = validated_data.pop("patient_code")
-        patient = Patient.objects.get(patient_code=patient_code)
-        validated_data["patient"] = patient
-        return super().create(validated_data)
     
 class AppointmentCancelSerializer(serializers.Serializer):
     reason = serializers.CharField(max_length=500)
+    
+class AppointmentHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Appointment
+        fields = [
+            "id",
+            "scheduled_time",
+            "status",
+            "cancellation_reason",
+            "created_at",
+        ]

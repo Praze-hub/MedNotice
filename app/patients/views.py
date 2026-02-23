@@ -1,10 +1,11 @@
+from accounts.enums import UserRole
 from rest_framework import viewsets, status, permissions
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
 
 from .models import Patient
-from .serializers import PatientSerializer
+from .serializers import PatientDashboardSerializer, PatientSerializer
 
 class PatientViewSet(viewsets.GenericViewSet):
     
@@ -16,7 +17,7 @@ class PatientViewSet(viewsets.GenericViewSet):
         user = self.request.user
         
         # add pagination
-        if user.user_type == "admin":
+        if user.user_type == UserRole.ADMIN.value:
             return Patient.objects.all()
         
         return Patient.objects.filter(user=user)
@@ -58,4 +59,20 @@ class PatientViewSet(viewsets.GenericViewSet):
         serializer = self.get_serializer(request.user.patient_profile)
         return Response(serializer.data)
     
-    
+    @action(
+        detail = False, 
+        methods=["get"], 
+        url_path="dashboard"
+    )
+    def dashboard(self, request):
+        if not hasattr(request.user, "patient_profile"):
+            return Response(
+                {"detail": "Profile not found"},
+                status=404
+            )
+            
+        patient = request.user.patient_profile
+        
+        serializer = PatientDashboardSerializer(patient)
+        
+        return Response(serializer.data)

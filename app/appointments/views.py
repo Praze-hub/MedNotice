@@ -1,4 +1,6 @@
 from django.shortcuts import get_object_or_404
+from accounts.enums import UserRole
+from appointments.enums import Status
 from patients.models import Patient
 from .services.scheduling import schedule_appointment
 from .serializer import AppointmentCancelSerializer, AppointmentSerializer
@@ -6,60 +8,36 @@ from .models import Appointment
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .permissions import IsAdmin
+from .permissions import IsAdmin, IsPatient
+from rest_framework.exceptions import PermissionDenied
 
 
 class AppointmentViewSet(viewsets.ModelViewSet):
     queryset = Appointment.objects.all()
-    permission_classes = [permissions.IsAuthenticated, IsAdmin]
+    serializer_class = AppointmentSerializer
+    permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
         user = self.request.user
         
-        if user.user_type == "admin":
+        if user.user_type == UserRole.ADMIN.value:
             return Appointment.objects.all()
         
         return Appointment.objects.filter(
             patient__user=user
         )
     
-    @action(
-        detail = True,
-        methods = ['get', 'post'],
-        url_path = 'book-appointment',
-        serializer_class=AppointmentSerializer,
-    )
-    def book_appointment(self, request, pk=None):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+    def perform_create(self, serializer):
+        user = self.request.user
+        print(user)
         
-        # patient = get_object_or_404(Patient, pk=pk)
-        user = request.user
+        if user.user_type != UserRole.PATIENT.value:
+            raise PermissionDenied("Only patients can create appointments")
         
-        if user.user_type != "patient":
-            return Response(
-                {"detail": "Only patients can book appointments"},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-            
         if not hasattr(user, "patient_profile"):
-            return Response(
-                {"detail": "Patient profile not created"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            raise PermissionDenied("Patient profile not created")
         
-        appointment = schedule_appointment(
-            patient = user.patient_profile,
-            scheduled_time = serializer.validated_data["scheduled_time"],
-        )
-        
-        return Response(
-            {
-                "appointment_id": appointment.id,
-                 "status": appointment.status
-            },
-            status=status.HTTP_201_CREATED
-        )
+        serializer.save(patient=user.patient_profile)
         
     """
     Add appointment id and patient id for the cancellation

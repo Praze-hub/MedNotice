@@ -9,6 +9,11 @@ class Patient(BaseModel):
     last_name = models.CharField(max_length=100)
     phone_number = models.CharField(max_length=20)
     email = models.EmailField(blank=True, null=True)
+    date_of_birth = models.DateField(null=True, blank=True)
+    blood_type = models.CharField(max_length=5, blank=True)
+    allergies = models.TextField(blank=True)
+    chronic_conditions = models.TextField(blank=True)
+
     
     def save(self, *args, **kwargs):
         with transaction.atomic():
