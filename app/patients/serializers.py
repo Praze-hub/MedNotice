@@ -21,7 +21,6 @@ class PatientSerializer(serializers.ModelSerializer):
         
 class PatientDashboardSerializer(serializers.ModelSerializer):
     age = serializers.IntegerField(read_only=True)
-    appointment_history = serializers.SerializerMethodField()
     
     class Meta:
         model = Patient
@@ -35,15 +34,6 @@ class PatientDashboardSerializer(serializers.ModelSerializer):
             "blood_type",
             "allergies",
             "chronic_conditions",
-            "appointment_history",
         ]
         
-    def get_appointment_history(self, obj):
-        appointments = Appointment.objects.filter(
-            patient=obj
-        ).order_by("-scheduled_time")
-        
-        return AppointmentHistorySerializer(
-            appointments,
-            many=True
-        ).data
+   

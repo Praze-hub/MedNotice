@@ -1,4 +1,7 @@
 from accounts.enums import UserRole
+from appointments.models import Appointment
+from appointments.serializer import AppointmentHistorySerializer
+from core.pagination import DefaultPagination
 from rest_framework import viewsets, status, permissions
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -12,6 +15,7 @@ class PatientViewSet(viewsets.GenericViewSet):
     queryset = Patient.objects.all()
     serializer_class = PatientSerializer
     permission_classes = [permissions.IsAuthenticated]
+    pagination_class = DefaultPagination
     
     def get_queryset(self):
         user = self.request.user
@@ -73,6 +77,24 @@ class PatientViewSet(viewsets.GenericViewSet):
             
         patient = request.user.patient_profile
         
-        serializer = PatientDashboardSerializer(patient)
+        # serializer = PatientDashboardSerializer(patient)
         
-        return Response(serializer.data)
+        # return Response(serializer.data)
+        patient_data = PatientDashboardSerializer(patient).data
+        
+        appointments = Appointment.objects.filter(
+            patient=patient
+        ).order_by("-scheduled_time")
+        
+        page = self.paginate_queryset(appointments)
+        
+        if page is not None:
+            appointment_data = AppointmentHistorySerializer(page, many=True).data
+            paginated_response = self.get_paginated_response(appointment_data)
+            patient_data["appointment_history"] = paginated_response.data
+            return Response(patient_data)
+        
+        appointment_data = AppointmentHistorySerializer(appointments, many=True).data
+        patient_data["appointment_history"] = appointment_data
+        
+        return Response(patient_data)
