@@ -7,10 +7,11 @@ from rest_framework import serializers
 class AppointmentSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(read_only=True)
     status = serializers.CharField(read_only=True)
+    patient_code = serializers.CharField(write_only=True, required=False)
     
     class Meta:
         model = Appointment
-        fields = ["id", "status", "scheduled_time", "description"]
+        fields = ["id", "status", "scheduled_time", "description", "patient_code"]
         
     def validate_scheduled_time(self, value):
         if not is_slot_available(value):

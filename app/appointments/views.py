@@ -11,7 +11,7 @@ from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from .permissions import IsAdmin, IsPatient
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, ValidationError
 
 
 class AppointmentViewSet(viewsets.ModelViewSet):
@@ -33,6 +33,19 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         user = self.request.user
         print(user)
         
+        if user.user_type == UserRole.ADMIN.value:
+            patient_code = self.request.data.get("patient_code")
+            
+            if not patient_code:
+                raise ValidationError("patient_code is required for admin scheduling")
+
+            try:
+                patient = Patient.objects.get(patient_code=patient_code)
+            except Patient.DoesNotExist:
+                raise ValidationError("Patient not found")
+
+            serializer.save(patient=patient)
+            return
         
         if user.user_type != UserRole.PATIENT.value:
             raise PermissionDenied("Only patients can create appointments")
