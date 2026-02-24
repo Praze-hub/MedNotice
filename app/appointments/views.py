@@ -74,3 +74,30 @@ class AppointmentViewSet(viewsets.ModelViewSet):
             status=status.HTTP_200_OK
         )
         
+    @action(
+        detail=True,
+        methods=["post"],
+        url_path="reschedule",
+        serializer_class=AppointmentSerializer
+    )
+    
+    def reschedule(self, request, pk=None):
+        appointment = self.get_object()
+        
+        if appointment.status != Status.SCHEDULED.value:
+            return Response(
+                {"detail": "Only scheduled appointments can be rescheduled"},
+                status=400
+            )
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        new_time = serializer.validated_data["scheduled_time"]
+        
+        appointment.scheduled_time = new_time
+        appointment.save(update_fields=['scheduled_time'])
+        
+        return Response(
+            AppointmentSerializer(appointment).data,
+            status=status.HTTP_200_OK
+        )
