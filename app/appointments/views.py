@@ -1,8 +1,10 @@
+from xml.dom import ValidationErr
+
 from django.shortcuts import get_object_or_404
 from accounts.enums import UserRole
 from appointments.enums import Status
 from patients.models import Patient
-from .services.scheduling import schedule_appointment
+from .services.scheduling import is_slot_available, schedule_appointment
 from .serializer import AppointmentCancelSerializer, AppointmentSerializer
 from .models import Appointment
 from rest_framework import viewsets, status, permissions
@@ -31,6 +33,7 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         user = self.request.user
         print(user)
         
+        
         if user.user_type != UserRole.PATIENT.value:
             raise PermissionDenied("Only patients can create appointments")
         
@@ -38,10 +41,7 @@ class AppointmentViewSet(viewsets.ModelViewSet):
             raise PermissionDenied("Patient profile not created")
         
         serializer.save(patient=user.patient_profile)
-        
-    """
-    Add appointment id and patient id for the cancellation
-    """
+    
     @action(
         detail = True,
         methods = ["post"],

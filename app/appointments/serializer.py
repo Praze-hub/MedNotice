@@ -1,3 +1,5 @@
+from appointments.services.scheduling import is_slot_available
+
 from .models import Appointment
 from patients.models import Patient
 from rest_framework import serializers
@@ -9,6 +11,13 @@ class AppointmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Appointment
         fields = ["id", "status", "scheduled_time", "description"]
+        
+    def validate_scheduled_time(self, value):
+        if not is_slot_available(value):
+            raise serializers.ValidationError(
+                "This time slot is already booked"
+            )
+        return value
         
     
 class AppointmentCancelSerializer(serializers.Serializer):
