@@ -7,7 +7,7 @@ from .managers import CustomUserManager
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
-    user_type = models.CharField(max_length=10, choices=UserRole.choices(), default=UserRole.PATIENT.value)
+    user_type = models.CharField(max_length=10, choices=UserRole.choices(), default=UserRole.DOCTOR.value)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)

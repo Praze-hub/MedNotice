@@ -3,6 +3,6 @@ from .models import Appointment
 
 @admin.register(Appointment)
 class AppointmentAdmin(admin.ModelAdmin):
-    list_display = ("id", "patient", "status", "scheduled_time")
+    list_display = ("id", "patient", "doctor", "status", "scheduled_time")
     list_filter = ("status",)
     

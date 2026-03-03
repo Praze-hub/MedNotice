@@ -2,10 +2,12 @@ from django.db import models
 
 from appointments.enums import Status
 from common.models import BaseModel
+from doctor.models import Doctor
 from patients.models import Patient
 
 class Appointment(BaseModel):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
+    doctor = models.ForeignKey(Doctor, on_delete=models.PROTECT, related_name="doctor_appointments", null=True, blank=True)
     scheduled_time = models.DateTimeField()
     status = models.CharField(max_length=20,
                               choices=Status.choices(),

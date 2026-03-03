@@ -8,4 +8,8 @@ class IsAdmin(BasePermission):
 class IsPatient(BasePermission):
     def has_permission(self, request):
         return request.user.user_type == UserRole.PATIENT
+    
+class IsDoctor(BasePermission):
+    def has_permission(self, request):
+        return request.user.user_type == UserRole.DOCTOR
         
