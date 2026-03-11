@@ -43,6 +43,9 @@ services:
       - .env
     ports:
       - "8000:8000"
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     depends_on:
        db:
           condition: service_healthy
