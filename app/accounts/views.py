@@ -1,3 +1,4 @@
+from notification.services import EmailService
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -13,7 +14,7 @@ from django.utils.encoding import smart_str
 # from rest_framework_simplejwt.views import TokenObtainPairView
 from django.core.mail import send_mail
 from .serializers import RegisterSerializer, PasswordResetRequestSerializer, PasswordResetConfirmSerializer 
-
+from notification.tasks import send_verification_email_task
 
 CustomUser = get_user_model()
 
@@ -26,14 +27,16 @@ class RegisterView(generics.CreateAPIView):
         token = RefreshToken.for_user(user).access_token
         current_site = get_current_site(self.request).domain
         relative_link = reverse('verify-email')
-        abs_url = f"http://{current_site}{relative_link}?token={str(token)}"
+        verification_url = f"http://{current_site}{relative_link}?token={str(token)}"
         
-        send_mail(
-            subject="Verify your email",
-            message=f"Click the link to verify your email: {abs_url}",
-            from_email = settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[user.email]
-        )
+        # send_mail(
+        #     subject="Verify your email",
+        #     message=f"Click the link to verify your email: {abs_url}",
+        #     from_email = settings.DEFAULT_FROM_EMAIL,
+        #     recipient_list=[user.email]
+        # )
+        # EmailService.send_verification_email(user, verification_url)
+        send_verification_email_task.delay(user.id, verification_url)
         
 class VerifyEmail(APIView):
     def get(self, request):

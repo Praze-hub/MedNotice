@@ -15,6 +15,7 @@ redis = "^7.1.0"
 djangorestframework = "^3.16.1"
 drf-spectacular = "^0.29.0"
 djangorestframework-simplejwt = "^5.5.1"
+sendgrid = "^6.12.5"
 
 [build-system]
 requires = ["poetry-core>=1.8.0"]
