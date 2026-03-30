@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404
 from accounts.enums import UserRole
 from appointments.enums import Status
 from doctor.models import Doctor
+from notification.tasks import send_appointment_cancelled_task, send_appointment_created_task, send_appointment_rescheduled_task
 from patients.models import Patient
 from .services.scheduling import is_slot_available, schedule_appointment
 from .serializer import AdminAppointmentSerializer, AppointmentCancelSerializer, AppointmentSerializer, PatientAppointmentSerializer
@@ -31,15 +32,19 @@ class BaseAppointmentViewSet(viewsets.ModelViewSet):
         serializer = AppointmentCancelSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
+        reason = serializer.validated_data["reason"]
+        
         try:
             appointment.cancel(
-                reason=serializer.validated_data["reason"]
+                reason=reason
             )
         except ValueError as e:
             return Response(
                 {"detail": str(e)},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+            
+        send_appointment_cancelled_task.delay(appointment.id, reason)
             
         return Response({
             "appointment_id": appointment.id,
@@ -63,6 +68,12 @@ class BaseAppointmentViewSet(viewsets.ModelViewSet):
                 {"detail": "Only scheduled appointments can be rescheduled"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+            
+        if not appointment.doctor:
+            return Response(
+            {"detail": "Cannot reschedule an appointment with no doctor assigned"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -71,6 +82,8 @@ class BaseAppointmentViewSet(viewsets.ModelViewSet):
 
         appointment.scheduled_time = new_time
         appointment.save(update_fields=["scheduled_time"])
+        
+        send_appointment_rescheduled_task.delay(appointment.id)
 
         return Response(
             AppointmentSerializer(appointment).data,
@@ -94,7 +107,18 @@ class PatientAppointmentViewSet(BaseAppointmentViewSet):
         if not hasattr(user, "patient_profile"):
             raise PermissionDenied("Patient profile not created")
         
-        serializer.save(patient=user.patient_profile)
+        doctor_code = self.request.data.get('doctor_code')
+        if not doctor_code:
+            raise ValidationErr("doctor_code is required")
+        
+        try:
+            doctor = Doctor.objects.get(doctor_code=doctor_code)
+        except Doctor.DoesNotExist:
+            raise ValidationErr("Doctor not found")
+        
+        appointment = serializer.save(patient=user.patient_profile, doctor=doctor)
+        
+        send_appointment_created_task.delay(appointment.id)
         
 
 class DoctorAppointmentViewSet(BaseAppointmentViewSet):
@@ -123,10 +147,13 @@ class DoctorAppointmentViewSet(BaseAppointmentViewSet):
         except Patient.DoesNotExist:
             raise ValidationError("Patient not found")
 
-        serializer.save(
+        appointment = serializer.save(
             patient=patient,
             doctor=user.doctor_profile,
         )
+        
+        send_appointment_created_task.delay(appointment.id)
+
         
 class AdminAppointmentViewSet(BaseAppointmentViewSet):
     permission_classes = [permissions.IsAuthenticated]
@@ -160,7 +187,9 @@ class AdminAppointmentViewSet(BaseAppointmentViewSet):
         except Doctor.DoesNotExist:
             raise ValidationError("Doctor not found")
 
-        serializer.save(
+        appointment = serializer.save(
             patient=patient,
             doctor=doctor,
         )
+        
+        send_appointment_created_task.delay(appointment.id)

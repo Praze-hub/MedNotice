@@ -51,10 +51,15 @@ class AdminAppointmentSerializer(BaseAppointmentSerializer):
         return super().create(validated_data)
     
 class PatientAppointmentSerializer(serializers.ModelSerializer):
+    doctor_code = serializers.CharField(write_only=True)
 
     class Meta:
         model = Appointment
-        fields = ["id", "status", "scheduled_time", "description"]
+        fields = ["id", "status", "scheduled_time", "description", "doctor_code"]
+        
+    def create(self, validated_data):
+        validated_data.pop("doctor_code", None)
+        return super().create(validated_data)
         
     
 class AppointmentCancelSerializer(serializers.Serializer):
