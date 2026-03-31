@@ -1,5 +1,4 @@
 from xml.dom import ValidationErr
-
 from django.shortcuts import get_object_or_404
 from accounts.enums import UserRole
 from appointments.enums import Status

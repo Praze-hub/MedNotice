@@ -13,7 +13,6 @@ class EmailService:
             from_email=settings.DEFAULT_FROM_EMAIL,
             to_emails=recipient_list,
             subject=subject,
-            # plain_text_content=message,
             html_content=html_content,
         )
         
@@ -29,8 +28,6 @@ class EmailService:
     
     @staticmethod
     def send_verification_email(user, verification_url):
-        # subject = "Verify your email"
-        # message = f"Click the link to verify your email {verification_url}"
         
         return EmailService.send_html_email(
             subject="Verify your email",
@@ -59,8 +56,11 @@ class EmailService:
     def send_appointment_cancelled(appointment, reason):
         recipients = [
             appointment.patient.user.email,
-            appointment.doctor.user.email,
         ]
+        
+        if appointment.doctor:
+            recipients.append(appointment.doctor.user.email)
+            
         EmailService.send_html_email(
             subject="Appointment Cancelled",
             template="emails/appointment_cancelled.html",

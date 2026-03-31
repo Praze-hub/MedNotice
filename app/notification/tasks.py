@@ -16,8 +16,7 @@ def send_verification_email_task(self, user_id, verification_url):
 @shared_task(bind=True, max_retries=3)
 def send_appointment_created_task(self, appointment_id):
     try:
-        # user = User.objects.get(id=user_id)
-        # appointment = Appointment.objects.get(id=appointment_id)
+      
         appointment = Appointment.objects.select_related(
             "patient__user",
             "doctor__user",
@@ -28,7 +27,6 @@ def send_appointment_created_task(self, appointment_id):
         
         EmailService.send_appointment_created(appointment)
     except Appointment.DoesNotExist:
-        # Don't retry if the appointment simply doesn't exist
         raise
     
     except Exception as exc:
@@ -37,13 +35,15 @@ def send_appointment_created_task(self, appointment_id):
 @shared_task(bind=True, max_retries=3)
 def send_appointment_cancelled_task(self, appointment_id, reason):
     try:
-        # user = User.objects.get(id=user_id)
-        # appointment = Appointment.objects.get(id=appointment_id)
+      
         appointment = Appointment.objects.select_related(
             "patient__user",
             "doctor__user",
         ).get(id=appointment_id)
         EmailService.send_appointment_cancelled(appointment, reason)
+        
+    except Appointment.DoesNotExist:
+        raise
     except Exception as exc:
         self.retry(exc=exc, countdown=60)
         
@@ -51,8 +51,6 @@ def send_appointment_cancelled_task(self, appointment_id, reason):
 @shared_task(bind=True, max_retries=3)
 def send_appointment_rescheduled_task(self, appointment_id):
     try:
-        # user = User.objects.get(id=user_id)
-        # appointment = Appointment.objects.get(id=appointment_id)
         
         appointment = Appointment.objects.select_related(
             "patient__user",
