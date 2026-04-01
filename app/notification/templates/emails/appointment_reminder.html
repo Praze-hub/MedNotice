@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <h2>Appointment Reminder</h2>
+    <p>This is a reminder that you have an appointment scheduled for:</p>
+    <p><strong>{{ appointment.scheduled_time }}</strong></p>
+    <p><strong>Patient:</strong> {{ appointment.patient.first_name }} {{ appointment.patient.last_name }}</p>
+    <p><strong>Doctor:</strong> {{ appointment.doctor.first_name }} {{ appointment.doctor.last_name }}</p>
+    <p><strong>Description:</strong> {{ appointment.description }}</p>
+</body>
+</html>

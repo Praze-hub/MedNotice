@@ -83,3 +83,17 @@ class EmailService:
             context={"appointment": appointment},
             recipient_list=recipients,
         )
+        
+    @staticmethod
+    def send_appointment_reminder(appointment):
+        recipients = [appointment.patient.user.email]
+
+        if appointment.doctor:
+            recipients.append(appointment.doctor.user.email)
+
+        EmailService.send_html_email(
+            subject="Appointment Reminder",
+            template="emails/appointment_reminder.html",
+            context={"appointment": appointment},
+            recipient_list=recipients,
+        )

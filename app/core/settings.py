@@ -3,6 +3,7 @@ from datetime import timedelta
 from pathlib import Path
 import os
 import environ
+from celery.schedules import crontab
 
 env = environ.Env(
     DEBUG=(bool, False)
@@ -33,6 +34,7 @@ INSTALLED_APPS = [
     #installed apps
     'rest_framework',
     "drf_spectacular",
+    "django_celery_beat",
     
     
     #custom apps
@@ -73,6 +75,8 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'core.wsgi.application'
+
+
 
 
 DATABASES = {
@@ -183,6 +187,15 @@ EMAIL_HOST_PASSWORD = env("SENDGRID_API_KEY")
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
 SITE_ID = 1 
 
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+
+CELERY_BEAT_SCHEDULE = {
+    "send-appointment-reminders": {
+        "task": "notification.tasks.send_appointment_reminder_task",
+        "schedule": crontab(hour="8", minute="0"),  # runs every day at 8:00 AM
+
+    },
+}
 
 LANGUAGE_CODE = 'en-us'
 
