@@ -4,6 +4,12 @@ from rest_framework_simplejwt.views import(
     TokenObtainPairView,
     TokenRefreshView,
 )
+from rest_framework.routers import DefaultRouter
+from .views import AdminViewSet
+
+
+router = DefaultRouter()
+router.register('admin/users', AdminViewSet, basename='admin-users')
 
 urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
@@ -13,3 +19,5 @@ urlpatterns = [
     path('password-reset/', PasswordResetRequestView.as_view(), name='password-reset'),
     path('password-reset-confirm/', PasswordResetConfirmView.as_view(), name='password-reset-confirm'),
 ]
+
+urlpatterns += router.urls

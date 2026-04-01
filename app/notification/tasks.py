@@ -96,3 +96,13 @@ def send_appointment_reminder_task(self):
             EmailService.send_appointment_reminder(appointment)
     except Exception as exc:
         raise self.retry(exc=exc, countdown=60)
+    
+@shared_task(bind=True, max_retries=3)
+def send_doctor_approved_email_task(self, user_id):
+    try:
+        user = User.objects.get(id=user_id)
+
+        EmailService.send_doctor_approved_email(user)
+
+    except Exception as exc:
+        self.retry(exc=exc, countdown=60)

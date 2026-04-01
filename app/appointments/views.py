@@ -11,7 +11,7 @@ from .models import Appointment
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .permissions import IsAdmin, IsPatient
+from .permissions import IsAdmin, IsPatient, IsVerifiedDoctor
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
 
@@ -121,7 +121,7 @@ class PatientAppointmentViewSet(BaseAppointmentViewSet):
         
 
 class DoctorAppointmentViewSet(BaseAppointmentViewSet):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsVerifiedDoctor]
     serializer_class=AppointmentSerializer
 
     def get_queryset(self):

@@ -1,0 +1,19 @@
+{% extends "emails/base.html" %}
+
+{% block content %}
+<h2>🎉 Your Account Has Been Approved</h2>
+
+<p>Hello {{ user.email }},</p>
+
+<p>Your doctor account has been successfully approved.</p>
+
+<p>You can now:</p>
+<ul>
+  <li>Accept appointments</li>
+  <li>Manage patients</li>
+  <li>Use the full platform</li>
+</ul>
+
+
+<p>Welcome aboard 🚀</p>
+{% endblock %}

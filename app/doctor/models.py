@@ -11,7 +11,7 @@ class Doctor(BaseModel):
     email = models.EmailField(blank=True, null=True)
     date_of_birth = models.DateField(null=True, blank=True)
     specialization = models.CharField(max_length=100)
-    license_number = models.CharField(max_length=100, unique=True)
+    license_number = models.CharField(max_length=100, unique=True, null=True, blank=True)
     years_of_experience = models.PositiveIntegerField(default=0)
     consultation_fee = models.DecimalField(
         max_digits=10,
@@ -20,7 +20,6 @@ class Doctor(BaseModel):
         blank=True
     )
     is_available = models.BooleanField(default=True)
-  
 
     
     def save(self, *args, **kwargs):

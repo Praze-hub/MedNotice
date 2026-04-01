@@ -40,6 +40,17 @@ class EmailService:
         )
         
     @staticmethod
+    def send_doctor_approved_email(user):
+        EmailService.send_html_email(
+            subject="Your Doctor Account Has Been Approved 🎉",
+            template="emails/doctor_approved.html",
+            context={
+                "user": user,
+            },
+            recipient_list=[user.email],
+        )
+        
+    @staticmethod
     def send_appointment_created(appointment):
         recipients = [
             appointment.patient.user.email,

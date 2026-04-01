@@ -28,11 +28,29 @@ class RegisterSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("You can only register as a patient or a doctor.")
         return value
     
+    # def create(self, validated_data):
+    #     validated_data.pop('password2')
+    #     user = CustomUser.objects.create_user(**validated_data)
+    #     if user.user_type == "doctor":
+    #         user.is_verified = False
+    #     else:
+    #         user.is_verified = True
+    #     user.is_active = True
+    #     user.save(update_fields=["is_verified", "is_active"])
+    #     return user
     def create(self, validated_data):
         validated_data.pop('password2')
-        user = CustomUser.objects.create_user(**validated_data)
-        user.is_active = True
-        user.save()
+    
+        user_type = validated_data.get('user_type')
+    
+        is_verified = user_type != 'doctor'
+    
+        user = CustomUser.objects.create_user(
+            **validated_data,
+            is_active=True,     
+            is_verified=is_verified 
+        )
+    
         return user
     
 class PasswordResetRequestSerializer(serializers.Serializer):
