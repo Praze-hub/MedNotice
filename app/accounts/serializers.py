@@ -12,15 +12,21 @@ CustomUser = get_user_model()
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     password2 = serializers.CharField(write_only=True, required=True)
+    user_type = serializers.ChoiceField(choices=CustomUser._meta.get_field("user_type").choices)
     
     class Meta:
         model = CustomUser
-        fields = ('email', 'password', 'password2')
+        fields = ('email', 'password', 'password2', 'user_type')
         
     def validate(self, attrs):
         if attrs['password'] != attrs['password2']:
             raise serializers.ValidationError({"password": "Password do not match."})
         return attrs
+    
+    def validate_user_type(self, value):
+        if value not in ["patient", "doctor"]:
+            raise serializers.ValidationError("You can only register as a patient or a doctor.")
+        return value
     
     def create(self, validated_data):
         validated_data.pop('password2')
