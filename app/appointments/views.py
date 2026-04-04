@@ -14,6 +14,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from .permissions import IsAdmin, IsPatient, IsVerifiedDoctor
 from rest_framework.exceptions import PermissionDenied, ValidationError
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 
 class DoctorShiftViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, IsVerifiedDoctor]
@@ -139,7 +140,13 @@ class PatientAppointmentViewSet(BaseAppointmentViewSet):
         appointment = serializer.save(patient=user.patient_profile, doctor=doctor, status=Status.PENDING.value)
         
         send_appointment_created_task.delay(appointment.id)
-        
+      
+    @extend_schema(
+    parameters=[
+        OpenApiParameter(name="doctor_code", type=str, required=True, description="Doctor's unique code"),
+        OpenApiParameter(name="date", type=str, required=True, description="Date in YYYY-MM-DD format"),
+        ]
+    )  
     @action(
         detail=False,
         methods=["get"],

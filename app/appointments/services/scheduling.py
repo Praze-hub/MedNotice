@@ -40,7 +40,7 @@ def get_doctor_available_slots(doctor, date):
     
     slots = []
     slot_start = datetime.combine(date, shift.start_time)
-    shift_end = datetime.commbine(date, shift.end_time)
+    shift_end = datetime.combine(date, shift.end_time)
     
     while slot_start + timedelta(minutes=shift.slot_duration_minutes) <= shift_end:
         slot_end = slot_start + timedelta(minutes=shift.slot_duration_minutes)
