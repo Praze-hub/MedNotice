@@ -52,15 +52,22 @@ class EmailService:
         
     @staticmethod
     def send_appointment_created(appointment):
-        recipients = [
-            appointment.patient.user.email,
-            appointment.doctor.user.email,
-        ]
+        # recipients = [
+        #     appointment.patient.user.email,
+        #     appointment.doctor.user.email,
+        # ]
         EmailService.send_html_email(
             subject="Appointment Scheduled",
             template="emails/appointment_created.html",
             context={"appointment": appointment},
-            recipient_list=recipients,
+            recipient_list=[appointment.patient.user.email],
+        )
+        
+        EmailService.send_html_email(
+        subject="New Appointment Request",
+        template="emails/appointment_request_doctor.html",
+        context={"appointment": appointment},
+        recipient_list=[appointment.doctor.user.email],
         )
         
     @staticmethod
@@ -108,3 +115,22 @@ class EmailService:
             context={"appointment": appointment},
             recipient_list=recipients,
         )
+        
+        
+    @staticmethod
+    def send_appointment_accepted(appointment):
+        EmailService.send_html_email(
+        subject="Appointment Confirmed",
+        template="emails/appointment_accepted.html",
+        context={"appointment": appointment},
+        recipient_list=[appointment.patient.user.email],
+        )
+        
+    @staticmethod
+    def send_appointment_declined(appointment, reason):
+        EmailService.send_html_email(
+        subject="Appointment Request Declined",
+        template="emails/appointment_declined.html",
+        context={"appointment": appointment, "reason": reason},
+        recipient_list=[appointment.patient.user.email],
+    )

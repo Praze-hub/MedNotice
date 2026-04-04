@@ -106,3 +106,27 @@ def send_doctor_approved_email_task(self, user_id):
 
     except Exception as exc:
         self.retry(exc=exc, countdown=60)
+        
+@shared_task(bind=True, max_retries=3)
+def send_appointment_accepted_task(self, appointment_id):
+    try:
+        appointment = Appointment.objects.select_related(
+            "patient__user", "doctor__user"
+        ).get(id=appointment_id)
+        EmailService.send_appointment_accepted(appointment)
+    except Appointment.DoesNotExist:
+        raise
+    except Exception as exc:
+        raise self.retry(exc=exc, countdown=60)
+    
+@shared_task(bind=True, max_retries=3)
+def send_appointment_declined_task(self, appointment_id, reason):
+    try:
+        appointment = Appointment.objects.select_related(
+            "patient__user", "doctor__user"
+        ).get(id=appointment_id)
+        EmailService.send_appointment_declined(appointment, reason)
+    except Appointment.DoesNotExist:
+        raise
+    except Exception as exc:
+        raise self.retry(exc=exc, countdown=60)

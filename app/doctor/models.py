@@ -1,6 +1,7 @@
 from django.db import models, transaction
 from common.models import BaseModel
 from core import settings
+from doctor.enums import Day
 
 class Doctor(BaseModel):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="doctor_profile", null=True, blank=True)
@@ -30,3 +31,23 @@ class Doctor(BaseModel):
             if creating and not self.doctor_code:
                 self.doctor_code = f"DOC-{self.id:06d}"
                 super().save(update_fields=["doctor_code"])
+
+
+class DoctorShift(models.Model):
+    doctor = models.ForeignKey(
+        Doctor,
+        on_delete=models.CASCADE,
+        related_name="shifts"
+    )
+    day_of_week = models.CharField(max_length=10, choices=Day.choices())
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+    slot_duration_minutes = models.PositiveIntegerField(default=30)
+    
+    class Meta:
+        unique_together = ("doctor", "day_of_week", "start_time")
+
+    def __str__(self):
+        return f"{self.doctor} | {self.day_of_week} {self.start_time}-{self.end_time}"
+    
+    

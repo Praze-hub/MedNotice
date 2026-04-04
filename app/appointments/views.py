@@ -1,12 +1,13 @@
-from xml.dom import ValidationErr
+from django.utils import timezone
+from urllib import request
 from django.shortcuts import get_object_or_404
 from accounts.enums import UserRole
 from appointments.enums import Status
-from doctor.models import Doctor
-from notification.tasks import send_appointment_cancelled_task, send_appointment_created_task, send_appointment_rescheduled_task
+from doctor.models import Doctor, DoctorShift
+from notification.tasks import send_appointment_accepted_task, send_appointment_cancelled_task, send_appointment_created_task, send_appointment_declined_task, send_appointment_rescheduled_task
 from patients.models import Patient
-from .services.scheduling import is_slot_available, schedule_appointment
-from .serializer import AdminAppointmentSerializer, AppointmentCancelSerializer, AppointmentSerializer, PatientAppointmentSerializer
+from .services.scheduling import get_doctor_available_slots, is_slot_available, schedule_appointment
+from .serializer import AdminAppointmentSerializer, AppointmentCancelSerializer, AppointmentDeclineSerializer, AppointmentSerializer, DoctorShiftSerializer, PatientAppointmentSerializer
 from .models import Appointment
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
@@ -14,6 +15,16 @@ from rest_framework.response import Response
 from .permissions import IsAdmin, IsPatient, IsVerifiedDoctor
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
+class DoctorShiftViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticated, IsVerifiedDoctor]
+    serializer_class = DoctorShiftSerializer
+    
+    def get_queryset(self):
+        return DoctorShift.objects.filter(doctor = self.request.user.doctor_profile)
+    
+    def perform_create(self, serializer):
+        serializer.save(doctor=self.request.user.doctor_profile)
+    
 
 class BaseAppointmentViewSet(viewsets.ModelViewSet):
     queryset = Appointment.objects.all()
@@ -78,6 +89,10 @@ class BaseAppointmentViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
 
         new_time = serializer.validated_data["scheduled_time"]
+        
+        available, error = is_slot_available(appointment.doctor, new_time)
+        if not available:
+            return Response({"detail": error}, status=status.HTTP_400_BAD_REQUEST)
 
         appointment.scheduled_time = new_time
         appointment.save(update_fields=["scheduled_time"])
@@ -90,7 +105,7 @@ class BaseAppointmentViewSet(viewsets.ModelViewSet):
         )
         
 class PatientAppointmentViewSet(BaseAppointmentViewSet):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsPatient]
     serializer_class = PatientAppointmentSerializer
     
     def get_queryset(self):
@@ -108,16 +123,59 @@ class PatientAppointmentViewSet(BaseAppointmentViewSet):
         
         doctor_code = self.request.data.get('doctor_code')
         if not doctor_code:
-            raise ValidationErr("doctor_code is required")
+            raise ValidationError("doctor_code is required")
         
         try:
             doctor = Doctor.objects.get(doctor_code=doctor_code)
         except Doctor.DoesNotExist:
-            raise ValidationErr("Doctor not found")
+            raise ValidationError("Doctor not found")
         
-        appointment = serializer.save(patient=user.patient_profile, doctor=doctor)
+        scheduled_time = serializer.validated_data["scheduled_time"]
+        
+        available, error = is_slot_available(doctor, scheduled_time)
+        if not available:
+            raise ValidationError(error)
+        
+        appointment = serializer.save(patient=user.patient_profile, doctor=doctor, status=Status.PENDING.value)
         
         send_appointment_created_task.delay(appointment.id)
+        
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="available-slots",
+        url_name="available-slots",
+    )
+    def available_slots(self, request):
+        doctor_code = request.query_params.get("doctor_code")
+        date_str = request.query_params.get("date")
+    
+        if not doctor_code or not date_str:
+            return Response(
+                {"detail": "doctor_code and date are required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        try:
+            doctor = Doctor.objects.get(doctor_code=doctor_code)
+        except Doctor.DoesNotExist:
+            return Response({"detail": "Doctor not found"}, status=404)
+        
+        try:
+            date = timezone.datetime.strptime(date_str, "%Y-%m-%d").date()
+        except ValueError:
+            return Response(
+                {"detail": "Invalid date format. Use YYYY-MM-DD"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+            
+        slots = get_doctor_available_slots(doctor, date)
+        
+        return Response({
+            "doctor_code": doctor_code,
+            "date": date_str,
+            "available_slots": [slot.strftime("%H:%M") for slot in slots],
+        })
         
 
 class DoctorAppointmentViewSet(BaseAppointmentViewSet):
@@ -145,13 +203,68 @@ class DoctorAppointmentViewSet(BaseAppointmentViewSet):
             patient = Patient.objects.get(patient_code=patient_code)
         except Patient.DoesNotExist:
             raise ValidationError("Patient not found")
+        
+        scheduled_time = serializer.validated_data["scheduled_time"]
+        
+        available, error = is_slot_available(user.doctor_profile, scheduled_time)
+        if not available:
+            raise ValidationError(error)
 
         appointment = serializer.save(
             patient=patient,
             doctor=user.doctor_profile,
+            status=Appointment.Status.SCHEDULED,
         )
         
         send_appointment_created_task.delay(appointment.id)
+     
+    @action(
+        detail=True,
+        methods=["post"],
+        url_path="accept",
+        serializer_class=None,
+    )    
+    def accept_appointment(self, request, pk=None):
+        appointment = self.get_object()
+
+        try:
+            appointment.accept()
+        except ValueError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        send_appointment_accepted_task.delay(appointment.id)
+
+        return Response({
+            "appointment_id": appointment.id,
+            "status": appointment.status,
+        }, status=status.HTTP_200_OK)
+        
+    @action(
+        detail=True,
+        methods=["post"],
+        url_path="decline",
+        serializer_class=AppointmentDeclineSerializer,
+    )
+    def decline_appointment(self, request, pk=None):
+        """Doctor declines a pending appointment request."""
+        appointment = self.get_object()
+
+        serializer = AppointmentDeclineSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        reason = serializer.validated_data["reason"]
+
+        try:
+            appointment.decline(reason=reason)
+        except ValueError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        send_appointment_declined_task.delay(appointment.id, reason)
+        
+        return Response({
+            "appointment_id": appointment.id,
+            "status": appointment.status,
+            "decline_reason": appointment.decline_reason,
+        }, status=status.HTTP_200_OK)
 
         
 class AdminAppointmentViewSet(BaseAppointmentViewSet):
@@ -185,10 +298,17 @@ class AdminAppointmentViewSet(BaseAppointmentViewSet):
             doctor = Doctor.objects.get(doctor_code=doctor_code)
         except Doctor.DoesNotExist:
             raise ValidationError("Doctor not found")
+        
+        scheduled_time = serializer.validated_data["scheduled_time"]
+
+        available, error = is_slot_available(doctor, scheduled_time)
+        if not available:
+            raise ValidationError(error)
 
         appointment = serializer.save(
             patient=patient,
             doctor=doctor,
+            status=Appointment.Status.SCHEDULED,
         )
         
         send_appointment_created_task.delay(appointment.id)
