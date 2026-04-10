@@ -6,8 +6,6 @@ from datetime import datetime, timedelta
 import pytz
 
 def schedule_appointment(*, patient, scheduled_time, description):
-    # if scheduled_time < timezone.now():
-    #     raise ValueError("Cannot schedule appointment in the past")
     
     appointment = Appointment.objects.create(
                 patient=patient,

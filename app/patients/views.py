@@ -6,7 +6,7 @@ from rest_framework import viewsets, status, permissions
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from .models import Patient
-from .serializers import PatientDashboardSerializer, PatientSerializer
+from .serializers import PatientSerializer
 
 class PatientViewSet(viewsets.GenericViewSet):
     
@@ -18,7 +18,6 @@ class PatientViewSet(viewsets.GenericViewSet):
     def get_queryset(self):
         user = self.request.user
         
-        # add pagination
         if user.user_type == UserRole.ADMIN.value:
             return Patient.objects.all()
         
@@ -62,9 +61,30 @@ class PatientViewSet(viewsets.GenericViewSet):
         return Response(serializer.data)
     
     @action(
+        detail=False,
+        methods=["patch"],
+        url_path="update-profile",
+    )
+    def update_profile(self, request):
+         if not hasattr(request.user, "patient_profile"):
+            return Response(
+                {"detail": "Profile not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+         serializer = self.get_serializer(
+                request.user.patient_profile,
+                data=request.data,
+                partial=True,           
+        )
+         serializer.is_valid(raise_exception=True)
+         serializer.save()
+         
+         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    @action(
         detail = False, 
         methods=["get"], 
-        url_path="dashboard"
+        url_path="dashboard",
     )
     def dashboard(self, request):
         if not hasattr(request.user, "patient_profile"):
@@ -78,7 +98,7 @@ class PatientViewSet(viewsets.GenericViewSet):
         # serializer = PatientDashboardSerializer(patient)
         
         # return Response(serializer.data)
-        patient_data = PatientDashboardSerializer(patient).data
+        patient_data = self.get_serializer(patient).data
         
         appointments = Appointment.objects.filter(
             patient=patient
