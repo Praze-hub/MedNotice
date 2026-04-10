@@ -8,7 +8,7 @@ from rest_framework.decorators import action
 
 
 from .models import Doctor
-from .serializers import DoctorDashboardSerializer, DoctorSerializer
+from .serializers import DoctorSerializer
 
 class DoctorViewSet(viewsets.GenericViewSet):
     
@@ -20,7 +20,6 @@ class DoctorViewSet(viewsets.GenericViewSet):
     def get_queryset(self):
         user = self.request.user
         
-        # add pagination
         if user.user_type == UserRole.ADMIN.value:
             return Doctor.objects.all()
         
@@ -64,6 +63,28 @@ class DoctorViewSet(viewsets.GenericViewSet):
         return Response(serializer.data)
     
     @action(
+        detail=False,
+        methods=["patch"],          
+        url_path="update-profile",
+    )
+    def update_profile(self, request):
+        if not hasattr(request.user, "doctor_profile"):
+            return Response(
+                {"detail": "Doctor not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        serializer = self.get_serializer(
+            request.user.doctor_profile,
+            data=request.data,
+            partial=True,           
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    @action(
         detail = False, 
         methods=["get"], 
         url_path="dashboard"
@@ -77,10 +98,8 @@ class DoctorViewSet(viewsets.GenericViewSet):
             
         doctor = request.user.doctor_profile
         
-        # serializer = PatientDashboardSerializer(patient)
         
-        # return Response(serializer.data)
-        doctor_data = DoctorDashboardSerializer(doctor).data
+        doctor_data = self.get_serializer(doctor).data
         
         appointments = Appointment.objects.filter(
             doctor=doctor
