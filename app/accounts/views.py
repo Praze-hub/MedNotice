@@ -104,13 +104,16 @@ class SetPasswordView(APIView):
         )
         
 class VerifyEmail(APIView):
+    permission_classes = [permissions.AllowAny]
+    
     def get(self, request):
         token = request.GET.get('token')
         try:
             access_token = AccessToken(token)
             user_id = access_token['user_id']
             user = CustomUser.objects.get(id=user_id)
-            user.is_active = True
+            
+            user.is_verified = True
             user.save()
             return Response({'message': 'Email verified successfully'}, status=status.HTTP_200_OK)
         except Exception as e:

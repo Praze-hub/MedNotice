@@ -33,8 +33,8 @@ class PatientRegisterSerializer(serializers.ModelSerializer):
             email=validated_data['email'],
             password=validated_data['password'],
             user_type=UserRole.PATIENT.value,
-            is_verified=True,
-            is_active=True 
+            is_verified=False,
+            is_active=True
         )
         return user
 
