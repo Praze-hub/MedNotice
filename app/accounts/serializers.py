@@ -39,7 +39,7 @@ class PatientRegisterSerializer(serializers.ModelSerializer):
 
 class StaffOnboardingSerializer(serializers.ModelSerializer):
     user_type = serializers.ChoiceField(
-        choices = [UserRole.DOCTOR.value, UserRole.PATIENT.value]
+        choices = [UserRole.DOCTOR.value, UserRole.ADMIN.value]
         
     )
     
