@@ -117,6 +117,7 @@ class VerifyEmail(APIView):
             return Response({'error': 'Invalid token or user'}, status=status.HTTP_400_BAD_REQUEST)
         
 class PasswordResetRequestView(generics.GenericAPIView):
+    permission_classes = [permissions.AllowAny]
     serializer_class = PasswordResetRequestSerializer
     
     def post(self, request):
@@ -126,6 +127,7 @@ class PasswordResetRequestView(generics.GenericAPIView):
         return Response({'message': 'Password reset link sent to your email.'}, status=status.HTTP_200_OK)
     
 class PasswordResetConfirmView(generics.GenericAPIView):
+    permission_classes = [permissions.AllowAny]
     serializer_class = PasswordResetConfirmSerializer
     
     def post(self, request):
@@ -134,58 +136,6 @@ class PasswordResetConfirmView(generics.GenericAPIView):
         serializer.save()
         return Response({'message': 'Password has been reset successfully'}, status=status.HTTP_200_OK)
     
-    
-    
-        
-# class AdminViewSet(viewsets.ViewSet):
-#     permission_classes = [permissions.IsAdminUser]
-    
-#     @action(detail=False, 
-#             methods=["post"], 
-#             url_path="approve-doctor")
-#     def approve_doctor(self, request):
-        
-#         email = request.data.get("email")
-
-#         if not email:
-#             return Response(
-#                 {"detail": "email is required"},
-#                 status=status.HTTP_400_BAD_REQUEST,
-#             )
-
-#         try:
-#             user = CustomUser.objects.get(email=email)
-#         except CustomUser.DoesNotExist:
-#             return Response(
-#                 {"detail": "User not found"},
-#                 status=status.HTTP_404_NOT_FOUND,
-#             )
-        
-#         print(f"DEBUG: Found user {user.email}, user_type={user.user_type}, is_verified={user.is_verified}")
-        
-#         if user.user_type != UserRole.DOCTOR.value:
-#             return Response(
-#                 {"detail": "This user is not a doctor"},
-#                 status=status.HTTP_400_BAD_REQUEST,
-#             )
-            
-#         if user.is_verified:
-#             return Response(
-#                 {"detail": "This doctor is already verified"},
-#                 status=status.HTTP_400_BAD_REQUEST,
-#             )
-        
-#         user.is_verified = True
-#         user.save(update_fields=["is_verified"])
-        
-#         send_doctor_approved_email_task.delay(user.id)
-        
-#         print(f"DEBUG: After save, is_verified={user.is_verified}")
-        
-#         return Response(
-#             {"message": "Doctor approved successfully"},
-#             status=status.HTTP_200_OK
-#         )
     
 class AdminViewSet(viewsets.ViewSet):
     permission_classes = [permissions.IsAdminUser]

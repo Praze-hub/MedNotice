@@ -141,3 +141,13 @@ def send_staff_invite_task(self, user_id, invite_url):
     except Exception as exc:
         raise self.retry(exc=exc, countdown=60)
     
+@shared_task(bind=True, max_retries=3)
+def send_password_reset_task(self, user_id, reset_url):
+    try:
+        user = User.objects.get(id=user_id)
+        EmailService.send_password_reset(user, reset_url)
+    except User.DoesNotExist:
+        raise
+    except Exception as exc:
+        raise self.retry(exc=exc, countdown=60)
+    

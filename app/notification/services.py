@@ -140,3 +140,13 @@ class EmailService:
         context={"user": user, "invite_url": invite_url},
         recipient_list=[user.email],
     )
+        
+        
+    @staticmethod
+    def send_password_reset(user, reset_url):
+        EmailService.send_html_email(
+            subject="Password Reset Request",
+            template="emails/password_reset.html",
+            context={"user": user, "reset_url": reset_url},
+            recipient_list=[user.email],
+    )
