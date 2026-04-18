@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>You're Invited to MedNotice</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .header { background-color: #2c3e50; padding: 30px; text-align: center; }
+        .header h1 { color: #ffffff; margin: 0; font-size: 24px; }
+        .header p { color: #bdc3c7; margin: 8px 0 0; font-size: 14px; }
+        .body { padding: 30px; }
+        .body p { color: #555555; line-height: 1.6; font-size: 15px; }
+        .btn { display: block; width: fit-content; margin: 24px auto; background-color: #2ecc71; color: #ffffff; padding: 14px 32px; border-radius: 6px; text-decoration: none; font-size: 16px; font-weight: bold; text-align: center; }
+        .notice { background-color: #fef9e7; border-left: 4px solid #f39c12; border-radius: 4px; padding: 14px 18px; margin-top: 20px; font-size: 13px; color: #7d6608; }
+        .footer { background-color: #f4f4f4; text-align: center; padding: 20px; font-size: 12px; color: #aaaaaa; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Welcome to MedNotice</h1>
+            <p>You have been invited to join the platform</p>
+        </div>
+
+        <div class="body">
+            <p>Hello <strong>{{ user.email }}</strong>,</p>
+            <p>
+                You have been invited to join MedNotice as a 
+                <strong>{{ user.user_type|title }}</strong>. Click the button below 
+                to set your password and activate your account.
+            </p>
+
+            <a href="{{ invite_url }}" class="btn">Set Your Password</a>
+
+            <div class="notice">
+                ⚠️ This invite link will expire after 24 hours. If you did not expect 
+                this email, you can safely ignore it.
+            </div>
+
+            <p>Best regards,<br><strong>MedNotice Team</strong></p>
+        </div>
+
+        <div class="footer">
+            <p>This is an automated message. Please do not reply to this email.</p>
+        </div>
+    </div>
+</body>
+</html>

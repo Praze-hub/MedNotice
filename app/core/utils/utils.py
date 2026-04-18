@@ -8,3 +8,6 @@ class CustomEnum(Enum):
     @classmethod
     def choices(cls):
         return[(c.value, c.value) for c in cls]
+    
+    
+ 

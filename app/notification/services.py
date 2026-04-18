@@ -52,10 +52,7 @@ class EmailService:
         
     @staticmethod
     def send_appointment_created(appointment):
-        # recipients = [
-        #     appointment.patient.user.email,
-        #     appointment.doctor.user.email,
-        # ]
+        
         EmailService.send_html_email(
             subject="Appointment Scheduled",
             template="emails/appointment_created.html",
@@ -133,4 +130,13 @@ class EmailService:
         template="emails/appointment_declined.html",
         context={"appointment": appointment, "reason": reason},
         recipient_list=[appointment.patient.user.email],
+    )
+        
+    @staticmethod
+    def send_staff_invite(user, invite_url):
+        EmailService.send_html_email(
+        subject="You have been invited to MedNotice",
+        template="emails/staff_invite.html",
+        context={"user": user, "invite_url": invite_url},
+        recipient_list=[user.email],
     )

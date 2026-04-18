@@ -130,3 +130,14 @@ def send_appointment_declined_task(self, appointment_id, reason):
         raise
     except Exception as exc:
         raise self.retry(exc=exc, countdown=60)
+    
+@shared_task(bind=True, max_retries=3)
+def send_staff_invite_task(self, user_id, invite_url):
+    try:
+        user = User.objects.get(id=user_id)
+        EmailService.send_staff_invite(user, invite_url)
+    except User.DoesNotExist:
+        raise
+    except Exception as exc:
+        raise self.retry(exc=exc, countdown=60)
+    

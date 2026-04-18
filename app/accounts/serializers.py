@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from accounts.enums import UserRole
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
@@ -9,50 +10,76 @@ from django.core.mail import send_mail
 
 CustomUser = get_user_model()
 
-class RegisterSerializer(serializers.ModelSerializer):
+class PatientRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     password2 = serializers.CharField(write_only=True, required=True)
-    user_type = serializers.ChoiceField(choices=CustomUser._meta.get_field("user_type").choices)
     
     class Meta:
         model = CustomUser
         fields = ('email', 'password', 'password2', 'user_type')
-        
+
     def validate(self, attrs):
         if attrs['password'] != attrs['password2']:
-            raise serializers.ValidationError({"password": "Password do not match."})
+            raise serializers.ValidationError({"password2": "Passwords do not match."})
+        
         return attrs
-    
-    def validate_user_type(self, value):
-        if value not in ["patient", "doctor"]:
-            raise serializers.ValidationError("You can only register as a patient or a doctor.")
-        return value
-    
-    # def create(self, validated_data):
-    #     validated_data.pop('password2')
-    #     user = CustomUser.objects.create_user(**validated_data)
-    #     if user.user_type == "doctor":
-    #         user.is_verified = False
-    #     else:
-    #         user.is_verified = True
-    #     user.is_active = True
-    #     user.save(update_fields=["is_verified", "is_active"])
-    #     return user
+
     def create(self, validated_data):
         validated_data.pop('password2')
-    
-        user_type = validated_data.get('user_type')
-    
-        is_verified = user_type != 'doctor'
-    
+      
         user = CustomUser.objects.create_user(
-            **validated_data,
-            is_active=True,     
-            is_verified=is_verified 
+            email=validated_data['email'],
+            password=validated_data['password'],
+            user_type=UserRole.PATIENT.value,
+            is_verified=True,
+            is_active=True 
         )
+        return user
+
+
+class StaffOnboardingSerializer(serializers.ModelSerializer):
+    user_type = serializers.ChoiceField(
+        choices = [UserRole.DOCTOR.value, UserRole.PATIENT.value]
+        
+    )
     
+    class Meta:
+        model = CustomUser
+        fields = ('email', 'user_type')
+        
+    def validate_email(self, value):
+        if CustomUser.objects.filter(email=value).exists():
+            raise serializers.ValidationError("A user with this email already exists")
+        return value
+    
+    def create(self, validated_data):
+        user_type = validated_data.get('user_type')
+        
+        user = CustomUser.objects.create_user(
+            email=validated_data['email'],
+            password=None,
+            user_type=user_type,
+            is_staff=(user_type == UserRole.ADMIN.value),
+            is_verified=(user_type != UserRole.DOCTOR.value),
+            is_active=False
+        )
+        
         return user
     
+class SetPasswordSerializer(serializers.Serializer):
+     """Used by the doctor to set their password via invite link."""
+     password = serializers.CharField(
+         write_only=True, required=True, validators=[validate_password]
+     )
+     password2 = serializers.CharField(write_only=True, required=True)
+     
+     def validate(self, attrs):
+         if attrs['password'] != attrs['password2']:
+             raise serializers.ValidationError({"password2": "Password do not match"})
+         
+         return attrs
+     
+
 class PasswordResetRequestSerializer(serializers.Serializer):
     email = serializers.EmailField()
     
