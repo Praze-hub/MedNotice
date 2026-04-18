@@ -127,4 +127,5 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
         return self.user
     
 
-    
+class ApproveDoctorSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)

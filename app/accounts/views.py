@@ -1,3 +1,4 @@
+from accounts.enums import UserRole
 from notification.services import EmailService
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny
@@ -14,7 +15,7 @@ from rest_framework_simplejwt.tokens import AccessToken
 from django.utils.encoding import smart_str
 # from rest_framework_simplejwt.views import TokenObtainPairView
 from django.core.mail import send_mail
-from .serializers import PatientRegisterSerializer, PasswordResetRequestSerializer, PasswordResetConfirmSerializer, SetPasswordSerializer, StaffOnboardingSerializer 
+from .serializers import ApproveDoctorSerializer, PatientRegisterSerializer, PasswordResetRequestSerializer, PasswordResetConfirmSerializer, SetPasswordSerializer, StaffOnboardingSerializer 
 from notification.tasks import send_doctor_approved_email_task, send_staff_invite_task, send_verification_email_task
 from rest_framework.decorators import action
 from django.shortcuts import get_object_or_404
@@ -54,7 +55,6 @@ class StaffOnboardingView(generics.CreateAPIView):
         current_site = get_current_site(self.request).domain
         invite_url = f"http://{current_site}/api/v1/accounts/auth/set-password/?uid={uid}&token={token}"
 
-        # Send invite email with the password setup link
         send_staff_invite_task.delay(user.id, invite_url)
         
         
@@ -137,36 +137,97 @@ class PasswordResetConfirmView(generics.GenericAPIView):
     
     
         
+# class AdminViewSet(viewsets.ViewSet):
+#     permission_classes = [permissions.IsAdminUser]
+    
+#     @action(detail=False, 
+#             methods=["post"], 
+#             url_path="approve-doctor")
+#     def approve_doctor(self, request):
+        
+#         email = request.data.get("email")
+
+#         if not email:
+#             return Response(
+#                 {"detail": "email is required"},
+#                 status=status.HTTP_400_BAD_REQUEST,
+#             )
+
+#         try:
+#             user = CustomUser.objects.get(email=email)
+#         except CustomUser.DoesNotExist:
+#             return Response(
+#                 {"detail": "User not found"},
+#                 status=status.HTTP_404_NOT_FOUND,
+#             )
+        
+#         print(f"DEBUG: Found user {user.email}, user_type={user.user_type}, is_verified={user.is_verified}")
+        
+#         if user.user_type != UserRole.DOCTOR.value:
+#             return Response(
+#                 {"detail": "This user is not a doctor"},
+#                 status=status.HTTP_400_BAD_REQUEST,
+#             )
+            
+#         if user.is_verified:
+#             return Response(
+#                 {"detail": "This doctor is already verified"},
+#                 status=status.HTTP_400_BAD_REQUEST,
+#             )
+        
+#         user.is_verified = True
+#         user.save(update_fields=["is_verified"])
+        
+#         send_doctor_approved_email_task.delay(user.id)
+        
+#         print(f"DEBUG: After save, is_verified={user.is_verified}")
+        
+#         return Response(
+#             {"message": "Doctor approved successfully"},
+#             status=status.HTTP_200_OK
+#         )
+    
 class AdminViewSet(viewsets.ViewSet):
     permission_classes = [permissions.IsAdminUser]
-    
-    @action(detail=True, 
-            methods=["post"], 
-            url_path="approve-doctor")
-    def approve_doctor(self, request, pk=None):
+    serializer_class = ApproveDoctorSerializer
+
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path="approve-doctor",
+    )
+    def approve_doctor(self, request):
+        serializer = ApproveDoctorSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)  
+
+        email = serializer.validated_data["email"]  
+
         try:
-            user = CustomUser.objects.get(pk=pk)
+            user = CustomUser.objects.get(email=email)
         except CustomUser.DoesNotExist:
-            return Response({"detail": "User not found"}, status=404)
-        
-        print(f"DEBUG: Found user {user.email}, user_type={user.user_type}, is_verified={user.is_verified}")
-        
-        if user.user_type != "doctor":
+            return Response(
+                {"detail": "User not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if user.user_type != UserRole.DOCTOR.value:
             return Response(
                 {"detail": "This user is not a doctor"},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
-        
+
+        if user.is_verified:
+            return Response(
+                {"detail": "This doctor is already verified"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         user.is_verified = True
         user.save(update_fields=["is_verified"])
-        
+
         send_doctor_approved_email_task.delay(user.id)
-        
-        user.refresh_from_db()
-        print(f"DEBUG: After save, is_verified={user.is_verified}")
-        
+
         return Response(
-            {"message": "Doctor approved successfully"},
-            status=status.HTTP_200_OK
+            {"message": "Doctor approved successfully", "email": user.email},
+            status=status.HTTP_200_OK,
         )
-    
