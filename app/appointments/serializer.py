@@ -35,9 +35,6 @@ class BaseAppointmentSerializer(serializers.ModelSerializer):
 class AppointmentSerializer(BaseAppointmentSerializer):
     patient_code = serializers.CharField(write_only=True, required=False)
     
-    # class Meta:
-    #     model = Appointment
-    #     fields = ["id", "status", "scheduled_time", "description", "patient_code"]
     class Meta(BaseAppointmentSerializer.Meta):
         fields = BaseAppointmentSerializer.Meta.fields + ["patient_code"]
         
@@ -50,16 +47,6 @@ class AdminAppointmentSerializer(BaseAppointmentSerializer):
     patient_code = serializers.CharField(write_only=True)
     doctor_code = serializers.CharField(write_only=True)
 
-    # class Meta:
-    #     model = Appointment
-    #     fields = [
-    #         "id",
-    #         "status",
-    #         "scheduled_time",
-    #         "description",
-    #         "patient_code",
-    #         "doctor_code",
-    #     ]
     class Meta(BaseAppointmentSerializer.Meta):
         fields = BaseAppointmentSerializer.Meta.fields + [
             "patient_code",
@@ -76,9 +63,6 @@ class AdminAppointmentSerializer(BaseAppointmentSerializer):
 class PatientAppointmentSerializer(serializers.ModelSerializer):
     doctor_code = serializers.CharField(write_only=True)
 
-    # class Meta:
-    #     model = Appointment
-    #     fields = ["id", "status", "scheduled_time", "description", "doctor_code"]
     class Meta(BaseAppointmentSerializer.Meta):
         fields = BaseAppointmentSerializer.Meta.fields + ["doctor_code"]
         

@@ -96,7 +96,6 @@ class PasswordResetRequestSerializer(serializers.Serializer):
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = PasswordResetTokenGenerator().make_token(user)
         
-        # reset_link = f"http://localhost:8000/api/accounts/password-reset/?uid={uid}&token={token}"
         if request:
             current_site = get_current_site(request).domain
             reset_url = f"http://{current_site}/api/v1/accounts/password-reset-confirm/?uid={uid}&token={token}"

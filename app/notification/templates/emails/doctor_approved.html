@@ -1,19 +1,62 @@
 {% extends "emails/base.html" %}
 
+{% block title %}Account Approved — MedNotice{% endblock %}
+
+{% block header %}
+<div class="card-header" style="background: linear-gradient(135deg, #10b981, #065f46);">
+    <span class="icon">🎉</span>
+    <h1>Account Approved</h1>
+    <p>Welcome to the MedNotice team</p>
+</div>
+{% endblock %}
+
 {% block content %}
-<h2>🎉 Your Account Has Been Approved</h2>
+<p>Dear <strong>Dr. {{ user.email }}</strong>,</p>
+<p>
+    Congratulations! Your MedNotice doctor account has been reviewed and 
+    <strong>approved</strong> by our admin team. You now have full access to the platform.
+</p>
 
-<p>Hello {{ user.email }},</p>
-
-<p>Your doctor account has been successfully approved.</p>
+<table class="details-table">
+    <tr>
+        <td>Account</td>
+        <td>{{ user.email }}</td>
+    </tr>
+    <tr>
+        <td>Role</td>
+        <td>
+            <span class="status-badge" style="background-color: #d1fae5; color: #065f46;">
+                Verified Doctor
+            </span>
+        </td>
+    </tr>
+    <tr>
+        <td>Status</td>
+        <td>Active &amp; Verified</td>
+    </tr>
+</table>
 
 <p>You can now:</p>
-<ul>
-  <li>Accept appointments</li>
-  <li>Manage patients</li>
-  <li>Use the full platform</li>
-</ul>
+<table class="details-table">
+    <tr>
+        <td>✅</td>
+        <td>Accept and manage patient appointments</td>
+    </tr>
+    <tr>
+        <td>✅</td>
+        <td>Set your availability and shift schedules</td>
+    </tr>
+    <tr>
+        <td>✅</td>
+        <td>View your patient history and dashboard</td>
+    </tr>
+    <tr>
+        <td>✅</td>
+        <td>Access all platform features</td>
+    </tr>
+</table>
 
-
-<p>Welcome aboard 🚀</p>
+<div class="alert-box" style="background-color: #ecfdf5; border-left: 4px solid #10b981; color: #064e3b;">
+    🚀 Log in to your dashboard to complete your profile and start managing appointments.
+</div>
 {% endblock %}

@@ -1,11 +1,55 @@
-<!DOCTYPE html>
-<html>
-<body>
-    <h2>Appointment Reminder</h2>
-    <p>This is a reminder that you have an appointment scheduled for:</p>
-    <p><strong>{{ appointment.scheduled_time }}</strong></p>
-    <p><strong>Patient:</strong> {{ appointment.patient.first_name }} {{ appointment.patient.last_name }}</p>
-    <p><strong>Doctor:</strong> {{ appointment.doctor.first_name }} {{ appointment.doctor.last_name }}</p>
-    <p><strong>Description:</strong> {{ appointment.description }}</p>
-</body>
-</html>
+{% extends "emails/base.html" %}
+
+{% block title %}Appointment Reminder — MedNotice{% endblock %}
+
+{% block header %}
+<div class="card-header" style="background: linear-gradient(135deg, #8b5cf6, #4c1d95);">
+    <span class="icon">⏰</span>
+    <h1>Appointment Reminder</h1>
+    <p>You have an upcoming appointment</p>
+</div>
+{% endblock %}
+
+{% block content %}
+<p>Dear <strong>{{ appointment.patient.first_name }} {{ appointment.patient.last_name }}</strong>,</p>
+<p>
+    This is a friendly reminder that you have an appointment scheduled within the next 
+    <strong>24 hours</strong>. Please make sure you are prepared and on time.
+</p>
+
+<table class="details-table">
+    <tr>
+        <td>Status</td>
+        <td>
+            <span class="status-badge" style="background-color: #ede9fe; color: #4c1d95;">
+                Upcoming
+            </span>
+        </td>
+    </tr>
+    <tr>
+        <td>Doctor</td>
+        <td>Dr. {{ appointment.doctor.first_name }} {{ appointment.doctor.last_name }}</td>
+    </tr>
+    <tr>
+        <td>Patient</td>
+        <td>{{ appointment.patient.first_name }} {{ appointment.patient.last_name }}</td>
+    </tr>
+    <tr>
+        <td>Date</td>
+        <td>{{ appointment.scheduled_time|date:"l, F j, Y" }}</td>
+    </tr>
+    <tr>
+        <td>Time</td>
+        <td>{{ appointment.scheduled_time|time:"g:i A" }}</td>
+    </tr>
+    <tr>
+        <td>Description</td>
+        <td>{{ appointment.description|default:"No description provided" }}</td>
+    </tr>
+</table>
+
+<div class="alert-box" style="background-color: #f5f3ff; border-left: 4px solid #8b5cf6; color: #3b0764;">
+    🕐 Please arrive <strong>10 minutes early</strong>. If you need to cancel or reschedule, 
+    please do so as soon as possible to allow other patients to book the slot.
+</div>
+{% endblock %}

@@ -1,8 +1,56 @@
 {% extends "emails/base.html" %}
 
+{% block title %}Appointment Rescheduled — MedNotice{% endblock %}
+
+{% block header %}
+<div class="card-header" style="background: linear-gradient(135deg, #06b6d4, #0e7490);">
+    <span class="icon">📅</span>
+    <h1>Appointment Rescheduled</h1>
+    <p>Your appointment time has been updated</p>
+</div>
+{% endblock %}
+
 {% block content %}
-Your appointment has been rescheduled.
+<p>Dear <strong>{{ appointment.patient.first_name }} {{ appointment.patient.last_name }}</strong>,</p>
+<p>
+    Your appointment with 
+    <strong>Dr. {{ appointment.doctor.first_name }} {{ appointment.doctor.last_name }}</strong> 
+    has been rescheduled to a new date and time.
+</p>
 
-<strong>New Date:</strong> {{ appointment.scheduled_time }}
+<table class="details-table">
+    <tr>
+        <td>Status</td>
+        <td>
+            <span class="status-badge" style="background-color: #cffafe; color: #0e7490;">
+                Rescheduled
+            </span>
+        </td>
+    </tr>
+    <tr>
+        <td>Doctor</td>
+        <td>Dr. {{ appointment.doctor.first_name }} {{ appointment.doctor.last_name }}</td>
+    </tr>
+    <tr>
+        <td>Patient</td>
+        <td>{{ appointment.patient.first_name }} {{ appointment.patient.last_name }}</td>
+    </tr>
+    <tr>
+        <td>New Date</td>
+        <td>{{ appointment.scheduled_time|date:"l, F j, Y" }}</td>
+    </tr>
+    <tr>
+        <td>New Time</td>
+        <td>{{ appointment.scheduled_time|time:"g:i A" }}</td>
+    </tr>
+    <tr>
+        <td>Description</td>
+        <td>{{ appointment.description|default:"No description provided" }}</td>
+    </tr>
+</table>
 
+<div class="alert-box" style="background-color: #ecfeff; border-left: 4px solid #06b6d4; color: #0c4a6e;">
+    🕐 Please arrive <strong>10 minutes early</strong> for your rescheduled appointment. 
+    If this new time does not work for you, please contact us to make alternative arrangements.
+</div>
 {% endblock %}

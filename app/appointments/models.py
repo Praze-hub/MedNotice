@@ -21,7 +21,7 @@ class Appointment(BaseModel):
         if self.status == Status.COMPLETED.value:
             raise ValueError("Completed appointments cannot be cancelled")
         
-        if self.sta == Status.DECLINED.value:
+        if self.status == Status.DECLINED.value:
             raise ValueError("Declined appointments cannot be cancelled")
         
         self.status = Status.CANCELLED.value

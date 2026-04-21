@@ -95,9 +95,6 @@ class PatientViewSet(viewsets.GenericViewSet):
             
         patient = request.user.patient_profile
         
-        # serializer = PatientDashboardSerializer(patient)
-        
-        # return Response(serializer.data)
         patient_data = self.get_serializer(patient).data
         
         appointments = Appointment.objects.filter(

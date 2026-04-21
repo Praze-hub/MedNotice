@@ -15,13 +15,6 @@ def schedule_appointment(*, patient, scheduled_time, description):
             )
     
     return appointment
-
-
-# def is_slot_available(scheduled_time):
-#     return not Appointment.objects.filter(
-#         scheduled_time=scheduled_time,
-#         status=Status.SCHEDULED.value
-#     ).exists()
     
 def get_doctor_available_slots(doctor, date):
     """

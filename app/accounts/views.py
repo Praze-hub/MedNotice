@@ -13,7 +13,6 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
 from django.utils.encoding import smart_str
-# from rest_framework_simplejwt.views import TokenObtainPairView
 from django.core.mail import send_mail
 from .serializers import ApproveDoctorSerializer, PatientRegisterSerializer, PasswordResetRequestSerializer, PasswordResetConfirmSerializer, SetPasswordSerializer, StaffOnboardingSerializer 
 from notification.tasks import send_doctor_approved_email_task, send_staff_invite_task, send_verification_email_task

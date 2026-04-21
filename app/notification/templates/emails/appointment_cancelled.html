@@ -1,8 +1,60 @@
 {% extends "emails/base.html" %}
 
+{% block title %}Appointment Cancelled — MedNotice{% endblock %}
+
+{% block header %}
+<div class="card-header" style="background: linear-gradient(135deg, #f59e0b, #92400e);">
+    <span class="icon">🚫</span>
+    <h1>Appointment Cancelled</h1>
+    <p>Your appointment has been cancelled</p>
+</div>
+{% endblock %}
+
 {% block content %}
-Your appointment has been cancelled.
+<p>Dear <strong>{{ appointment.patient.first_name }} {{ appointment.patient.last_name }}</strong>,</p>
+<p>
+    Your appointment with 
+    <strong>Dr. {{ appointment.doctor.first_name }} {{ appointment.doctor.last_name }}</strong> 
+    has been cancelled.
+</p>
 
-{{ reason }}
+<table class="details-table">
+    <tr>
+        <td>Status</td>
+        <td>
+            <span class="status-badge" style="background-color: #fef3c7; color: #92400e;">
+                Cancelled
+            </span>
+        </td>
+    </tr>
+    <tr>
+        <td>Doctor</td>
+        <td>Dr. {{ appointment.doctor.first_name }} {{ appointment.doctor.last_name }}</td>
+    </tr>
+    <tr>
+        <td>Patient</td>
+        <td>{{ appointment.patient.first_name }} {{ appointment.patient.last_name }}</td>
+    </tr>
+    <tr>
+        <td>Original Date</td>
+        <td>{{ appointment.scheduled_time|date:"l, F j, Y" }}</td>
+    </tr>
+    <tr>
+        <td>Original Time</td>
+        <td>{{ appointment.scheduled_time|time:"g:i A" }}</td>
+    </tr>
+</table>
 
+{% if reason %}
+<div class="alert-box" style="background-color: #fffbeb; border-left: 4px solid #f59e0b; color: #78350f;">
+    <strong style="display: block; margin-bottom: 6px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
+        Cancellation Reason
+    </strong>
+    {{ reason }}
+</div>
+{% endif %}
+
+<div class="alert-box" style="background-color: #eff6ff; border-left: 4px solid #3b82f6; color: #1e3a5f; margin-top: 12px;">
+    💡 You can book a new appointment at any time through the MedNotice platform.
+</div>
 {% endblock %}

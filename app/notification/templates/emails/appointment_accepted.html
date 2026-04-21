@@ -1,146 +1,55 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Appointment Confirmed</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-        }
-        .container {
-            max-width: 600px;
-            margin: 40px auto;
-            background-color: #ffffff;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        .header {
-            background-color: #2ecc71;
-            padding: 30px;
-            text-align: center;
-        }
-        .header h1 {
-            color: #ffffff;
-            margin: 0;
-            font-size: 24px;
-        }
-        .header p {
-            color: #d5f5e3;
-            margin: 8px 0 0;
-            font-size: 14px;
-        }
-        .body {
-            padding: 30px;
-        }
-        .body p {
-            color: #555555;
-            line-height: 1.6;
-            font-size: 15px;
-        }
-        .details-card {
-            background-color: #f9f9f9;
-            border-left: 4px solid #2ecc71;
-            border-radius: 4px;
-            padding: 20px;
-            margin: 24px 0;
-        }
-        .details-card table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .details-card table tr td {
-            padding: 8px 0;
-            font-size: 14px;
-            color: #444444;
-        }
-        .details-card table tr td:first-child {
-            font-weight: bold;
-            color: #222222;
-            width: 40%;
-        }
-        .badge {
-            display: inline-block;
-            background-color: #2ecc71;
-            color: #ffffff;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: bold;
-        }
-        .notice {
-            background-color: #eafaf1;
-            border-radius: 4px;
-            padding: 14px 18px;
-            margin-top: 20px;
-            font-size: 14px;
-            color: #1e8449;
-        }
-        .footer {
-            background-color: #f4f4f4;
-            text-align: center;
-            padding: 20px;
-            font-size: 12px;
-            color: #aaaaaa;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>✓ Appointment Confirmed</h1>
-            <p>Your appointment request has been accepted</p>
-        </div>
+{% extends "emails/base.html" %}
 
-        <div class="body">
-            <p>Dear <strong>{{ appointment.patient.first_name }} {{ appointment.patient.last_name }}</strong>,</p>
-            <p>
-                Great news! Dr. <strong>{{ appointment.doctor.first_name }} {{ appointment.doctor.last_name }}</strong> has 
-                accepted your appointment request. Your appointment is now confirmed.
-            </p>
+{% block title %}Appointment Confirmed — MedNotice{% endblock %}
 
-            <div class="details-card">
-                <table>
-                    <tr>
-                        <td>Status</td>
-                        <td><span class="badge">Confirmed</span></td>
-                    </tr>
-                    <tr>
-                        <td>Doctor</td>
-                        <td>Dr. {{ appointment.doctor.first_name }} {{ appointment.doctor.last_name }}</td>
-                    </tr>
-                    <tr>
-                        <td>Patient</td>
-                        <td>{{ appointment.patient.first_name }} {{ appointment.patient.last_name }}</td>
-                    </tr>
-                    <tr>
-                        <td>Date & Time</td>
-                        <td>{{ appointment.scheduled_time|date:"l, F j, Y" }} at {{ appointment.scheduled_time|time:"g:i A" }}</td>
-                    </tr>
-                    <tr>
-                        <td>Description</td>
-                        <td>{{ appointment.description|default:"No description provided" }}</td>
-                    </tr>
-                </table>
-            </div>
+{% block header %}
+<div class="card-header" style="background: linear-gradient(135deg, #10b981, #065f46);">
+    <span class="icon">✅</span>
+    <h1>Appointment Confirmed</h1>
+    <p>Your request has been accepted</p>
+</div>
+{% endblock %}
 
-            <div class="notice">
-                Please arrive 10 minutes before your scheduled time. If you need to cancel or 
-                reschedule, please do so as early as possible.
-            </div>
+{% block content %}
+<p>Dear <strong>{{ appointment.patient.first_name }} {{ appointment.patient.last_name }}</strong>,</p>
+<p>
+    Great news! <strong>Dr. {{ appointment.doctor.first_name }} {{ appointment.doctor.last_name }}</strong> 
+    has accepted your appointment request. Your appointment is now confirmed.
+</p>
 
-            <p>We look forward to seeing you soon.</p>
-            <p>Best regards,<br><strong>MedNotice Team</strong></p>
-        </div>
+<table class="details-table">
+    <tr>
+        <td>Status</td>
+        <td>
+            <span class="status-badge" style="background-color: #d1fae5; color: #065f46;">
+                Confirmed
+            </span>
+        </td>
+    </tr>
+    <tr>
+        <td>Doctor</td>
+        <td>Dr. {{ appointment.doctor.first_name }} {{ appointment.doctor.last_name }}</td>
+    </tr>
+    <tr>
+        <td>Patient</td>
+        <td>{{ appointment.patient.first_name }} {{ appointment.patient.last_name }}</td>
+    </tr>
+    <tr>
+        <td>Date</td>
+        <td>{{ appointment.scheduled_time|date:"l, F j, Y" }}</td>
+    </tr>
+    <tr>
+        <td>Time</td>
+        <td>{{ appointment.scheduled_time|time:"g:i A" }}</td>
+    </tr>
+    <tr>
+        <td>Description</td>
+        <td>{{ appointment.description|default:"No description provided" }}</td>
+    </tr>
+</table>
 
-        <div class="footer">
-            <p>This is an automated message. Please do not reply to this email.</p>
-            <p>&copy; {{ appointment.scheduled_time|date:"Y" }} MedNotice. All rights reserved.</p>
-        </div>
-    </div>
-</body>
-</html>
+<div class="alert-box" style="background-color: #ecfdf5; border-left: 4px solid #10b981; color: #064e3b;">
+    🕐 Please arrive <strong>10 minutes early</strong> for your appointment. 
+    If you need to cancel or reschedule, please do so as early as possible.
+</div>
+{% endblock %}

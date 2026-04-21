@@ -1,8 +1,52 @@
 {% extends "emails/base.html" %}
 
+{% block title %}Appointment Request Submitted — MedNotice{% endblock %}
+
+{% block header %}
+<div class="card-header" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
+    <span class="icon">📋</span>
+    <h1>Appointment Request Submitted</h1>
+    <p>Awaiting doctor confirmation</p>
+</div>
+{% endblock %}
+
 {% block content %}
-Your appointment has been scheduled.
+<p>Dear <strong>{{ appointment.patient.first_name }} {{ appointment.patient.last_name }}</strong>,</p>
+<p>
+    Your appointment request has been successfully submitted to 
+    <strong>Dr. {{ appointment.doctor.first_name }} {{ appointment.doctor.last_name }}</strong>. 
+    You will receive a notification once the doctor responds to your request.
+</p>
 
-<strong>Date:</strong> {{ appointment.scheduled_time }}
+<table class="details-table">
+    <tr>
+        <td>Status</td>
+        <td>
+            <span class="status-badge" style="background-color: #fef3c7; color: #92400e;">
+                Pending
+            </span>
+        </td>
+    </tr>
+    <tr>
+        <td>Doctor</td>
+        <td>Dr. {{ appointment.doctor.first_name }} {{ appointment.doctor.last_name }}</td>
+    </tr>
+    <tr>
+        <td>Requested Date</td>
+        <td>{{ appointment.scheduled_time|date:"l, F j, Y" }}</td>
+    </tr>
+    <tr>
+        <td>Requested Time</td>
+        <td>{{ appointment.scheduled_time|time:"g:i A" }}</td>
+    </tr>
+    <tr>
+        <td>Description</td>
+        <td>{{ appointment.description|default:"No description provided" }}</td>
+    </tr>
+</table>
 
+<div class="alert-box" style="background-color: #eff6ff; border-left: 4px solid #3b82f6; color: #1e3a5f;">
+    ⏳ Please wait for Dr. {{ appointment.doctor.first_name }} {{ appointment.doctor.last_name }} 
+    to review your request. You will be notified by email once a decision has been made.
+</div>
 {% endblock %}
