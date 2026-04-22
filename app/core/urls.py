@@ -5,6 +5,10 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
     SpectacularRedocView,
 )
+from django.http import JsonResponse
+
+def health_check(request):
+    return JsonResponse({"status": "ok"})
 
 
 urlpatterns = [
@@ -16,5 +20,6 @@ urlpatterns = [
     path("api/v1/docs/", SpectacularSwaggerView.as_view(url_name="schema")),
     path("api/v1/redoc/", SpectacularRedocView.as_view(url_name="schema")),
     path('api/v1/accounts/', include('accounts.urls')),
+    path('api/v1/health/', health_check),
   
 ]
