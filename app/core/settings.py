@@ -15,10 +15,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env("SECRET_KEY")
+SECRET_KEY = env("SECRET_KEY", default="dummy-build-secret")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env("DEBUG")
+DEBUG = env("DEBUG", default=True)
 
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["*"])
 
@@ -91,10 +91,10 @@ DATABASES = {
     }
 }
 
-CELERY_BROKER_URL = env("REDIS_URL")
+CELERY_BROKER_URL = env("REDIS_URL", default="redis://localhost:6379/0")
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
-CELERY_RESULT_BACKEND = None  # optional for now
+CELERY_RESULT_BACKEND = None  
 
 LOGGING = {
     "version": 1,
