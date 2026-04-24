@@ -103,10 +103,16 @@ class PasswordResetRequestSerializer(serializers.Serializer):
         #     reset_url = f"http://{current_site}/api/v1/accounts/password-reset-confirm/?uid={uid}&token={token}"
         # else:
         #     reset_url = f"http://localhost:8000/api/v1/accounts/password-reset-confirm/?uid={uid}&token={token}"
-        protocol = 'https' if request and request.is_secure() else 'http'
-        domain = get_current_site(request).domain if request else 'localhost:8000'
+        # protocol = 'https' if request and request.is_secure() else 'http'
+        # domain = get_current_site(request).domain if request else 'localhost:8000'
     
-        reset_url = f"{protocol}://{domain}/api/v1/accounts/password-reset-confirm/?uid={uid}&token={token}"
+        # reset_url = f"{protocol}://{domain}/api/v1/accounts/password-reset-confirm/?uid={uid}&token={token}"
+        if request:
+            base_url = f"{request.scheme}://{request.get_host()}"
+        else:
+            base_url = "http://localhost:8000"
+
+        reset_url = f"{base_url}/api/v1/accounts/password-reset-confirm/?uid={uid}&token={token}"
         
         send_password_reset_task.delay(user.id, reset_url)
         return user

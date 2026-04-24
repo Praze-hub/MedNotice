@@ -51,8 +51,11 @@ class StaffOnboardingView(generics.CreateAPIView):
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         
         
-        current_site = get_current_site(self.request).domain
-        invite_url = f"http://{current_site}/api/v1/accounts/auth/set-password/?uid={uid}&token={token}"
+        # base_url = get_current_site(self.request).domain
+        # invite_url = f"http://{current_site}/api/v1/accounts/auth/set-password/?uid={uid}&token={token}"
+        
+        base_url = f"{self.request.scheme}://{self.request.get_host()}"
+        invite_url = f"{base_url}/api/v1/accounts/auth/set-password/?uid={uid}&token={token}"
 
         send_staff_invite_task.delay(user.id, invite_url)
         
@@ -125,7 +128,7 @@ class PasswordResetRequestView(generics.GenericAPIView):
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        serializer.save(request=request)
         return Response({'message': 'Password reset link sent to your email.'}, status=status.HTTP_200_OK)
     
 class PasswordResetConfirmView(generics.GenericAPIView):
