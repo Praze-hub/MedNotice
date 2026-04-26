@@ -134,3 +134,9 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
 
 class ApproveDoctorSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
+    
+    
+class CreateInitialAdminSerializer(serializers.Serializer):
+    setup_key = serializers.CharField(required=True)
+    email = serializers.EmailField(required=True)
+    password = serializers.CharField(required=True, write_only=True)
