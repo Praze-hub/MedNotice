@@ -95,18 +95,8 @@ class PasswordResetRequestSerializer(serializers.Serializer):
         email = self.validated_data['email']
         user = CustomUser.objects.get(email=email)
         uid = urlsafe_base64_encode(force_bytes(user.pk))
-        # token = PasswordResetTokenGenerator().make_token(user)
         token = default_token_generator.make_token(user)
         
-        # if request:
-        #     current_site = get_current_site(request).domain
-        #     reset_url = f"http://{current_site}/api/v1/accounts/password-reset-confirm/?uid={uid}&token={token}"
-        # else:
-        #     reset_url = f"http://localhost:8000/api/v1/accounts/password-reset-confirm/?uid={uid}&token={token}"
-        # protocol = 'https' if request and request.is_secure() else 'http'
-        # domain = get_current_site(request).domain if request else 'localhost:8000'
-    
-        # reset_url = f"{protocol}://{domain}/api/v1/accounts/password-reset-confirm/?uid={uid}&token={token}"
         if request:
             base_url = f"{request.scheme}://{request.get_host()}"
         else:
@@ -130,9 +120,6 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
             self.user = CustomUser.objects.get(pk=uid)
         except Exception:
             raise serializers.ValidationError({"uid": "Invalid uid"})
-        
-        # if not PasswordResetTokenGenerator().check_token(self.user, attrs['token']):
-        #     raise serializers.ValidationError({"token": "Invalid or expired token"})
         
         if not default_token_generator.check_token(self.user, attrs['token']):
             raise serializers.ValidationError({"token": "Invalid or expired token"})

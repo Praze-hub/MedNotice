@@ -1,3 +1,5 @@
+import os
+
 from accounts.enums import UserRole
 from notification.services import EmailService
 from rest_framework import generics, status
@@ -185,4 +187,39 @@ class AdminViewSet(viewsets.ViewSet):
         return Response(
             {"message": "Doctor approved successfully", "email": user.email},
             status=status.HTTP_200_OK,
+        )
+        
+class CreateInitialAdminView(APIView):
+    permissin_classes = [permissions.AllowAny]
+    
+    def post(self, request):
+        secret = request.data.get("setup_key")
+        if secret != os.environ.get("SETUP_KEY"):
+            return Response(
+                {"detail": "Forbidden"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+            
+        email = request.data.get("email")
+        password = request.data.get("password")
+        
+        if not email or not password:
+            return Response(
+                {"detail": "email and password are required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+            
+        user = CustomUser.objects.create_user(
+            email=email,
+            password=password,
+            user_type="admin",
+            is_active=True,
+            is_verified=True,
+            is_staff=True,
+            is_superuser=True,
+        )
+        
+        return Response(
+            {"detail" f"Admin {user.email} created successfully"},
+            status=status.HTTP_201_CREATED,
         )
