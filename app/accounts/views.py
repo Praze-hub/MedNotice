@@ -16,7 +16,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
 from django.utils.encoding import smart_str
 from django.core.mail import send_mail
-from .serializers import ApproveDoctorSerializer, CreateInitialAdminSerializer, PatientRegisterSerializer, PasswordResetRequestSerializer, PasswordResetConfirmSerializer, SetPasswordSerializer, StaffOnboardingSerializer 
+from .serializers import ApproveDoctorSerializer,  PatientRegisterSerializer, PasswordResetRequestSerializer, PasswordResetConfirmSerializer, SetPasswordSerializer, StaffOnboardingSerializer 
 from notification.tasks import send_doctor_approved_email_task, send_staff_invite_task, send_verification_email_task
 from rest_framework.decorators import action
 from django.shortcuts import get_object_or_404
@@ -189,46 +189,3 @@ class AdminViewSet(viewsets.ViewSet):
             status=status.HTTP_200_OK,
         )
         
-class CreateInitialAdminView(APIView):
-    permission_classes = [permissions.AllowAny]
-    serializer_class = CreateInitialAdminSerializer 
-    
-    def post(self, request):
-        serializer = CreateInitialAdminSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        secret = serializer.validated_data.get("setup_key")
-        setup_key = os.environ.get("SETUP_KEY", "").strip()  
-
-        print(f"DEBUG received key: '{secret}'")   
-        print(f"DEBUG expected key: '{setup_key}'")
-
-        if secret != setup_key:
-            return Response(
-                {"detail": "Forbidden"},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        email = serializer.validated_data.get("email")
-        password = serializer.validated_data.get("password")
-
-        if CustomUser.objects.filter(email=email).exists():
-            return Response(
-                {"detail": "User already exists"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        user = CustomUser.objects.create_user(
-            email=email,
-            password=password,
-            user_type="admin",
-            is_active=True,
-            is_verified=True,
-            is_staff=True,
-            is_superuser=True,
-        )
-
-        return Response(
-            {"detail": f"Admin {user.email} created successfully"},
-            status=status.HTTP_201_CREATED,
-        )
