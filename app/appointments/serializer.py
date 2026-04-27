@@ -25,12 +25,12 @@ class BaseAppointmentSerializer(serializers.ModelSerializer):
         model = Appointment
         fields = ["id", "status", "scheduled_time", "description"]
 
-    def validate_scheduled_time(self, value):
-        if not is_slot_available(value):
-            raise serializers.ValidationError(
-                "This time slot is already booked"
-            )
-        return value
+    # def validate_scheduled_time(self, value):
+    #     if not is_slot_available(value):
+    #         raise serializers.ValidationError(
+    #             "This time slot is already booked"
+    #         )
+    #     return value
 
 class AppointmentSerializer(BaseAppointmentSerializer):
     patient_code = serializers.CharField(write_only=True, required=False)
