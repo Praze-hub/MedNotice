@@ -5,7 +5,7 @@ from rest_framework_simplejwt.views import(
     TokenRefreshView,
 )
 from rest_framework.routers import DefaultRouter
-from .views import AdminViewSet, CreateInitialAdminView
+from .views import AdminViewSet
 
 
 router = DefaultRouter()
@@ -20,7 +20,6 @@ urlpatterns = [
     path('verify-email/', VerifyEmail.as_view(), name='verify-email'),
     path('password-reset/', PasswordResetRequestView.as_view(), name='password-reset'),
     path('password-reset-confirm/', PasswordResetConfirmView.as_view(), name='password-reset-confirm'),
-    path("setup/create-admin/", CreateInitialAdminView.as_view(), name="create-initial-admin")
 ]
 
 urlpatterns += router.urls
