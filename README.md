@@ -4,13 +4,6 @@ MedNotice is a healthcare system that streamlines how patients book and manage m
 
 A key problem MedNotice solves is lack of trust and coordination in healthcare access, especially in environments where verifying qualified professionals is critical. The system introduces a doctor verification and approval workflow, ensuring that only vetted doctors can receive appointments. It also improves communication through automated email notifications and reminders powered by background tasks, helping reduce missed appointments and improve patient engagement.
 
-![Python](https://img.shields.io/badge/Python-3.12-blue)
-![Django](https://img.shields.io/badge/Django-5.x-green)
-![DRF](https://img.shields.io/badge/DRF-3.x-red)
-![Celery](https://img.shields.io/badge/Celery-5.x-brightgreen)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14-blue)
-![Docker](https://img.shields.io/badge/Docker-Compose-blue)
-
 ---
 
 ## Table of Contents
