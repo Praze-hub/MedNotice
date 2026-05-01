@@ -45,7 +45,6 @@ MedNotice is a backend API for managing healthcare appointments between patients
 - Appointment reminders via Celery Beat scheduled tasks
 - JWT-based authentication with token refresh and blacklisting
 - Password reset and email verification flows
-- Full admin management panel
 
 ---
 
