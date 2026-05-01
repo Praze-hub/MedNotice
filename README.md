@@ -425,3 +425,16 @@ mednotice/
 ## License
 
 This project is licensed under the MIT License.
+
+---
+
+## Legal Disclaimer & Compliance
+
+> [!IMPORTANT]
+> While this software is provided under the **MIT License**, users are responsible for ensuring that their specific implementation and deployment of **MedNotice** comply with relevant data privacy laws.
+
+*   **Compliance:** You are solely responsible for ensuring your use of this project meets your local regulatory requirements.
+*   **Liability:** The authors of this project are not responsible for any data breaches or regulatory non-compliance resulting from the use of this code.
+
+---
+
