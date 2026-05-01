@@ -10,7 +10,6 @@ A key problem MedNotice solves is lack of trust and coordination in healthcare a
 ![Celery](https://img.shields.io/badge/Celery-5.x-brightgreen)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14-blue)
 ![Docker](https://img.shields.io/badge/Docker-Compose-blue)
-![License](https://img.shields.io/badge/License-MIT-yellow)
 
 ---
 
