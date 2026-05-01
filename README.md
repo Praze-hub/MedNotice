@@ -33,7 +33,7 @@ A key problem MedNotice solves is lack of trust and coordination in healthcare a
 
 ## Project Overview
 
-MedNotice is a backend API for managing healthcare appointments between patients and doctors. It supports three user roles — **Patient**, **Doctor**, and **Admin** — each with distinct workflows and permissions.
+MedNotice is a backend API for managing healthcare appointments between patients and doctors. It supports three user roles **Patient**, **Doctor**, and **Admin** each with distinct workflows and permissions.
 
 **Core features include:**
 
@@ -112,10 +112,10 @@ Public registration is restricted to patients only. Doctors are onboarded via ad
 Doctors start with `is_verified=False` after accepting their invite. They can log in but cannot perform any actions until an admin explicitly approves their account. This ensures all practicing doctors on the platform are vetted.
 
 ### 3. Appointment Request Flow
-Patients submit appointment **requests** (status: `PENDING`) rather than directly booking confirmed slots. Doctors then accept or decline. This reflects real-world clinical workflows where doctors control their schedule.
+Patients submit appointment **requests** (status: `PENDING`) rather than directly booking confirmed slots. Doctors then accept or decline. 
 
 ### 4. Shift-Based Availability
-Doctors define weekly shifts with start/end times and slot durations. The system generates available slots dynamically and prevents double-booking by checking existing `PENDING` and `SCHEDULED` appointments against requested times.
+Doctors define weekly shifts with start/end times and slot durations. The API generates available slots and prevents double-booking by checking existing `PENDING` and `SCHEDULED` appointments against requested times.
 
 ### 5. Celery for Async Email
 All email sending is handled asynchronously via Celery tasks with a retry mechanism (max 3 retries, 60-second countdown). This keeps API response times fast and makes the system resilient to transient email provider failures.
@@ -127,7 +127,7 @@ Appointment reminders are sent via a scheduled Celery Beat task that runs every 
 Rather than splitting settings into multiple files, the project uses a single `settings.py` driven entirely by environment variables. A `if not DEBUG` block at the bottom activates production security settings automatically when `DEBUG=False`.
 
 ### 8. JWT Authentication
-SimpleJWT is used with short-lived access tokens (30 minutes) and rotating refresh tokens (1 day) with blacklisting enabled. This balances security with usability.
+SimpleJWT is used with short-lived access tokens (30 minutes) and rotating refresh tokens (1 day) with blacklisting enabled. 
 
 ---
 
@@ -139,63 +139,29 @@ Make sure you have the following installed:
 
 | Tool | Version |
 |------|---------|
-| Python | 3.12+ |
+| Python | 3.8+ |
 | Docker | Latest |
 | Docker Compose | Latest |
-| Poetry | 1.7.1 |
+| Poetry | 6.0.3 |
 | Git | Latest |
 
 ### Installation
 
 **1. Clone the repository:**
 ```bash
-git clone https://github.com/yourusername/mednotice.git
-cd mednotice
+git clone https://github.com/Praze-hub/MedNotice.git
+cd MedNotice
 ```
 
 **2. Copy the environment file:**
 ```bash
-cp .env.example .env
+cp .env.sample
 ```
 
-**3. Fill in your environment variables** (see [Environment Variables](#environment-variables) below)
-
-**4. Build and start the containers:**
+**3. Build and start the containers:**
 ```bash
 docker compose up --build
 ```
-
-### Environment Variables
-
-Create a `.env` file in the project root with the following variables:
-
-```env
-# Django
-SECRET_KEY=your-secret-key-here
-DEBUG=True
-ALLOWED_HOSTS=localhost,127.0.0.1
-
-# Database
-POSTGRES_DB=mednotice
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
-POSTGRES_HOST=db
-POSTGRES_PORT=5432
-
-# Redis
-REDIS_URL=redis://redis:6379/0
-
-# Email (SendGrid)
-EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
-EMAIL_HOST=smtp.sendgrid.net
-EMAIL_PORT=587
-EMAIL_USE_TLS=True
-EMAIL_HOST_USER=apikey
-SENDGRID_API_KEY=your-sendgrid-api-key
-DEFAULT_FROM_EMAIL=noreply@yourdomain.com
-```
-
-> **Note:** For local development set `EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend` to print emails to the console instead of sending them.
 
 ### Database Setup
 
@@ -207,7 +173,7 @@ docker exec -it mednotice_api python manage.py migrate
 
 **Create an admin user:**
 ```bash
-docker exec -it mednotice_api python manage.py create_admin --email admin@example.com --password yourpassword
+ docker exec -it mednotice_api python manage.py createsuperuser
 ```
 
 ---
@@ -234,10 +200,6 @@ docker compose down
 # All services
 docker compose logs -f
 
-# Specific service
-docker compose logs -f api
-docker compose logs -f celery
-docker compose logs -f celery-beat
 ```
 
 **Run tests:**
@@ -278,7 +240,7 @@ GET /api/v1/health/
 }
 ```
 
-Use this endpoint to verify the API is running. It is also used by Railway/Render as the deployment health check.
+Use this endpoint to verify the API is running. It is also used by Railway as the deployment health check.
 
 ---
 
@@ -354,17 +316,11 @@ GET /api/v1/appointments/patient/appointments/available-slots/?doctor_code=DOC-1
 
 2. **Single timezone** — all appointment times are stored and displayed in UTC. There is no per-user timezone support.
 
-3. **No file uploads** — doctors cannot upload documents, prescriptions, or profile pictures.
+3. **No file uploads** — doctors cannot upload documents, prescriptions, or profile pictures yet.
 
 4. **No real-time notifications** — notifications are email-only. There is no WebSocket or push notification support.
 
 5. **Single shift per day** — the `DoctorShift` model enforces one shift per doctor per day. Split shifts (e.g. 9AM-12PM and 2PM-5PM) are not supported.
-
-6. **No appointment search or filtering** — the appointment list endpoints return all records without advanced filtering by date range, status, or doctor/patient name.
-
-7. **Free tier limitations** — when deployed on Railway's free tier, services may be limited by the $5 monthly credit. High traffic will exhaust the free allowance.
-
-8. **No soft delete** — cancelling or declining an appointment updates its status but the record is never removed from the database.
 
 ---
 
@@ -373,10 +329,7 @@ GET /api/v1/appointments/patient/appointments/available-slots/?doctor_code=DOC-1
 ```
 mednotice/
 ├── app/                          # Django application root
-│   ├── accounts/                 # Authentication, registration, user management
-│   │   ├── management/
-│   │   │   └── commands/
-│   │   │       └── create_admin.py
+│   ├── accounts/                 # Authentication, registration, user management   
 │   │   ├── enums.py
 │   │   ├── models.py             # CustomUser model
 │   │   ├── serializers.py
