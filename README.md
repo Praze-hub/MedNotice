@@ -44,45 +44,70 @@ MedNotice is a backend API for managing healthcare appointments between patients
 ## Entity Relationship Diagram
 
 ```
-┌─────────────────┐         ┌─────────────────┐
-│   CustomUser    │         │     Patient      │
-│─────────────────│         │─────────────────-│
-│ id              │ 1     1 │ id               │
-│ email           │─────────│ user (FK)        │
-│ user_type       │         │ patient_code     │
-│ is_active       │         │ first_name       │
-│ is_verified     │         │ last_name        │
-│ is_staff        │         │ phone_number     │
-└─────────────────┘         │ date_of_birth    │
-         │                  │ blood_type       │
-         │ 1             1  │ allergies        │
-         │                  │ chronic_cond..   │
-┌────────┴────────┐         └────────┬─────────┘
-│     Doctor      │                  │
-│─────────────────│                  │
-│ id              │                  │ 1
-│ user (FK)       │                  │
-│ doctor_code     │         ┌────────┴──────────┐
-│ first_name      │         │   Appointment     │
-│ last_name       │         │───────────────────│
-│ specialization  │ 1     * │ id                │
-│ years_exp       │─────────│ patient (FK)      │
-│ consult_fee     │         │ doctor (FK)       │
-│ is_available    │         │ scheduled_time    │
-└────────┬────────┘         │ status            │
-         │                  │ description       │
-         │ 1                │ cancellation_rsn  │
-         │                  │ decline_reason    │
-┌────────┴────────┐         │ reminder_sent     │
-│  DoctorShift    │         │ created_at        │
-│─────────────────│         └───────────────────┘
-│ id              │
-│ doctor (FK)     │
-│ day_of_week     │
-│ start_time      │
-│ end_time        │
-│ slot_duration   │
-└─────────────────┘
+```mermaid
+erDiagram
+  CustomUser {
+    int id PK
+    string email
+    string user_type
+    bool is_active
+    bool is_staff
+    bool is_verified
+    datetime date_joined
+  }
+  Patient {
+    int id PK
+    string patient_code
+    int user_id FK
+    string first_name
+    string last_name
+    string phone_number
+    string email
+    date date_of_birth
+    string blood_type
+    text allergies
+    text chronic_conditions
+  }
+  Doctor {
+    int id PK
+    string doctor_code
+    int user_id FK
+    string first_name
+    string last_name
+    string phone_number
+    string email
+    date date_of_birth
+    string specialization
+    string license_number
+    int years_of_experience
+    decimal consultation_fee
+    bool is_available
+  }
+  DoctorShift {
+    int id PK
+    int doctor_id FK
+    string day_of_week
+    time start_time
+    time end_time
+    int slot_duration_minutes
+  }
+  Appointment {
+    int id PK
+    int patient_id FK
+    int doctor_id FK
+    datetime scheduled_time
+    string status
+    string description
+    string cancellation_reason
+    text decline_reason
+    bool reminder_sent
+    datetime created_at
+  }
+  CustomUser ||--o| Patient : "has profile"
+  CustomUser ||--o| Doctor : "has profile"
+  Patient ||--o{ Appointment : "books"
+  Doctor ||--o{ Appointment : "handles"
+  Doctor ||--o{ DoctorShift : "defines"
 ```
 
 **Appointment Status Flow:**
