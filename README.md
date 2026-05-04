@@ -43,7 +43,7 @@ MedNotice is a backend API for managing healthcare appointments between patients
 
 ## Entity Relationship Diagram
 
-```
+
 ```mermaid
 erDiagram
   CustomUser {
