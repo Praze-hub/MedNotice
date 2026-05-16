@@ -1,6 +1,6 @@
 # MedNotice API
 
-MedNotice is a healthcare system that streamlines how patients book and manage medical appointments while ensuring trust and reliability in the system. It allows patients to schedule, reschedule, and cancel appointments with doctors, while doctors can manage their availability and interactions with patients.
+MedNotice is an API that streamlines how patients book and manage medical appointments while ensuring trust and reliability in the system. It allows patients to schedule, reschedule, and cancel appointments with doctors, while doctors can manage their availability and interactions with patients.
 
 A key problem MedNotice solves is lack of trust and coordination in healthcare access, especially in environments where verifying qualified professionals is critical. The system introduces a doctor verification and approval workflow, ensuring that only vetted doctors can receive appointments. It also improves communication through automated email notifications and reminders powered by background tasks, helping reduce missed appointments and improve patient engagement.
 
